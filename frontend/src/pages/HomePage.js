@@ -12,10 +12,12 @@ function HomePage() {
     const [hawkEyeError, setHawkEyeError] = useState('');
     const [decisionData, setDecisionData] = useState(null);
 
+    const baseURL = process.env.REACT_APP_API_BASE_URL;
+
     useEffect(() => {
         const fetchTechnologies = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/technologies');
+                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/technologies`);
                 setTechnologies(response.data);
             } catch (err) {
                 setError(err);
@@ -24,7 +26,7 @@ function HomePage() {
             }
         };
         fetchTechnologies();
-    }, []);
+    }, [baseURL]);
 
     const cricketTech = technologies.filter(tech => tech.category === 'Cricket');
     const footballTech = technologies.filter(tech => tech.category === 'Football');
@@ -44,11 +46,11 @@ function HomePage() {
         formData.append('video', file);
 
         try {
-            const response = await axios.post('http://localhost:5000/api/hawkeye/upload', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                }
-            });
+            const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/hawkeye/upload`, formData, {
+    headers: {
+        'Content-Type': 'multipart/form-data',
+    }
+});
 
             const data = response.data;
 
