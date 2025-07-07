@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -9,24 +10,25 @@ const ffprobeInstaller = require('@ffprobe-installer/ffprobe');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const HOST_URL = process.env.HOST_URL || `http://localhost:${PORT}`;
 
+// Set ffprobe path
 ffmpeg.setFfprobePath(ffprobeInstaller.path);
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ✅ MongoDB connection
-mongoose.connect(
-  'mongodb+srv://rahilpatial161381:qwerty1234@catering.4tszz.mongodb.net/?retryWrites=true&w=majority&appName=catering'
-)
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// ✅ Routes
+// Routes
 app.use('/api/technologies', require('./routes/technologies'));
 
-// ✅ Multer Setup
+// Multer Setup
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const dir = './uploads';
@@ -50,7 +52,7 @@ const upload = multer({
   limits: { fileSize: 100 * 1024 * 1024 } // 100MB
 });
 
-// ✅ Hawk Eye Multi-Ball Analysis
+// Hawk-Eye Multi-Ball Analysis
 app.post('/api/hawkeye/upload', upload.single('video'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No video file uploaded' });
@@ -68,7 +70,7 @@ app.post('/api/hawkeye/upload', upload.single('video'), (req, res) => {
     const avgFrameRate = fpsStream ? eval(fpsStream.avg_frame_rate) : 30;
     const duration = metadata.format.duration || 0;
 
-    const ballCount = Math.floor(Math.random() * 6) + 1; // 1–6 balls
+    const ballCount = Math.floor(Math.random() * 6) + 1;
     const deliveries = [];
 
     for (let i = 0; i < ballCount; i++) {
@@ -100,7 +102,7 @@ app.post('/api/hawkeye/upload', upload.single('video'), (req, res) => {
 
     const result = {
       message: 'Cricket analysis completed',
-      videoUrl: `http://localhost:${PORT}/${videoPath.replace(/\\/g, '/')}`,
+      videoUrl: `${HOST_URL}/${videoPath.replace(/\\/g, '/')}`,
       durationInSeconds: duration.toFixed(2),
       averageFrameRate: avgFrameRate.toFixed(2),
       ballCount,
@@ -120,12 +122,12 @@ app.post('/api/hawkeye/upload', upload.single('video'), (req, res) => {
   });
 });
 
-// ✅ Root Route
+// Root Route
 app.get('/', (req, res) => {
   res.send('✅ Sports Tech API is running...');
 });
 
-// ✅ Start server
+// Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running at ${HOST_URL}`);
 });
