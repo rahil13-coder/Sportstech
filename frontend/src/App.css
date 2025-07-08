@@ -128,3 +128,40 @@ body {
     transform: translateY(0);
   }
 }
+
+.custom-footer {
+    background-color: #1c1c1c;
+    color: #f5f5f5;
+    text-align: center;
+    padding: 20px 10px;
+    margin-top: 40px;
+    border-top: 3px solid #ffc107;
+    border-radius: 10px 10px 0 0;
+}
+
+.footer-text {
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.social-link {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.social-link:hover {
+    transform: scale(1.15);
+}
+
+.social-icon {
+    width: 32px;
+    height: 32px;
+    vertical-align: middle;
+}

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../App.css';
+import SnickoMeter from './SnickoMeter';
+
 
 function HomePage() {
     const [technologies, setTechnologies] = useState([]);
@@ -11,6 +13,8 @@ function HomePage() {
     const [processing, setProcessing] = useState(false);
     const [hawkEyeError, setHawkEyeError] = useState('');
     const [decisionData, setDecisionData] = useState(null);
+    const [snickoActive, setSnickoActive] = useState(false);
+
 
     const baseURL = process.env.REACT_APP_API_BASE_URL;
 
@@ -133,8 +137,17 @@ function HomePage() {
                     </div>
                 )}
             </section>
-
+            
             {/* Technology Sections */}
+            <section className="mb-5">
+    <h2>SNICKO METER</h2>
+    <button className="btn btn-primary mb-3" onClick={() => setSnickoActive(!snickoActive)}>
+        {snickoActive ? "Close Snicko Meter" : "Activate Snicko Meter"}
+    </button>
+
+    {snickoActive && <SnickoMeter />}
+</section>
+
             {[{ title: "Cricket Technologies", data: cricketTech },
               { title: "Football Technologies", data: footballTech },
               { title: "Tennis Technologies", data: tennisTech },
@@ -162,8 +175,38 @@ function HomePage() {
                     </div>
                 </section>
             ))}
+            <footer className="custom-footer">
+    <p className="footer-text">© Rahil Technologies Pvt. Ltd.</p>
+    <div className="social-icons">
+        <a
+            href="https://youtube.com/@info1_system3?si=LVWSva_yuNARLLBu"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="social-link"
+        >
+            <img
+                src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"
+                alt="YouTube Channel"
+                className="social-icon"
+            />
+        </a>
+        <a
+            href="https://www.facebook.com/rahil.patial.9?mibextid=ZbWKwL"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="social-link"
+        >
+            <img
+                src="https://cdn-icons-png.flaticon.com/512/733/733547.png"
+                alt="Facebook Profile"
+                className="social-icon"
+            />
+        </a>
+    </div>
+</footer>
+
+
         </div>
     );
 }
-
 export default HomePage;
