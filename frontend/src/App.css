@@ -51,25 +51,15 @@ background-color: #282c34;
 
 /* HomePage.css */
 /* App.css */
-body {
-  margin: 0;
-  padding: 0;
-  /*background-image: url('/pexels-pixelcop-2799556.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  min-height: 100vh;
-  font-family: sans-serif;
-  color: white;
-}
+
 
 .hero-title {
   font-size: 3rem; /* large title */
   text-align: center;
   margin-bottom: 2rem;
   font-weight: 800;
-  color: #ffffff; /* white text for dark backgrounds */
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* stylish shadow */
+  color: rgb(241, 209, 209); /* white text for dark backgrounds */
+  text-shadow: 2px 2px 8px rgb(91, 27, 160); /* stylish shadow */
   letter-spacing: 2px;
   animation: fadeIn 2s ease-in-out;
 }
@@ -91,7 +81,7 @@ body {
   margin-bottom: 2rem;
   font-weight: 800;
   color: #ffffff; /* white text for dark backgrounds */
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* stylish shadow */
+  text-shadow: 2px 2px 8px rgb(0, 0, 0); /* stylish shadow */
   letter-spacing: 2px;
   animation: fadeIn 2s ease-in-out;
 }
@@ -112,7 +102,7 @@ body {
   text-align: center;
   margin-bottom: 2rem;
   font-weight: 600;
-  color: #f47600; /* white text for dark backgrounds */
+  color: #ffae00; /* white text for dark backgrounds */
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); /* stylish shadow */
   letter-spacing: 2px;
   animation: fadeIn 2s ease-in-out;
@@ -166,3 +156,91 @@ body {
     vertical-align: middle;
 }
 
+.tennis{
+  font-size: 2cqh;
+  text-align: center;
+  margin-bottom: 4cqh;
+  font-weight: 900;
+  transition: background-color 0.3s ease; 
+  color: #ffffff; 
+  text-shadow: 2px 2px 8px rgb(0, 0, 0); 
+  letter-spacing: 2px;
+  animation: fadeIn 2s ease-in-out;
+  width: fit-content; /* Modern way to auto-size based on content */
+  margin: 0 auto;
+  margin-bottom: 40px; /* Adjust spacing between sections */
+  padding: 20px; 
+}
+
+.tennis:hover { 
+  color: #ff8c00; 
+}
+
+.football{
+  font-size: 2cqh;
+  text-align: center;
+  margin-bottom: 2cqh;
+  font-weight: 900;
+  transition: background-color 0.3s ease; 
+  color: #ffffff; 
+  text-shadow: 2px 2px 8px rgb(0, 0, 0); 
+  letter-spacing: 2px;
+  animation: fadeIn 2s ease-in-out;
+  width: fit-content; /* Modern way to auto-size based on content */
+  margin: 0 auto; 
+}
+
+.football:hover {
+  color: #ff9500; 
+}
+
+.cricket{
+  font-size: 2cqh;
+  text-align: center;
+  margin-bottom: 2cqh;
+  font-weight: 900;
+  transition: background-color 0.3s ease; 
+  color: #fdfbfa; 
+  text-shadow: 2px 2px 8px rgb(0, 0, 0); 
+  letter-spacing: 2px;
+  animation: fadeIn 2s ease-in-out;
+  width: fit-content; /* Modern way to auto-size based on content */
+  margin: 0 auto;
+}
+
+.cricket:hover {
+  color: #ffaa00;  
+}
+
+.t1 {
+  background-color: #007bff; /* Matches the blue in the image */
+  color: #ffffff;            /* White text */
+  padding: 10px 20px;        /* Horizontal and vertical padding */
+  border: none;              /* No visible border */
+  border-radius: 6px;        /* Rounded corners */
+  font-size: 16px;           /* Readable font size */
+  cursor: pointer;           /* Pointer on hover */
+  transition: background-color 0.3s ease; /* Smooth hover transition */
+}
+
+.f1 {
+  background-color: #007bff; /* Matches the blue in the image */
+  color: #ffffff;            /* White text */
+  padding: 10px 20px;        /* Horizontal and vertical padding */
+  border: none;              /* No visible border */
+  border-radius: 6px;        /* Rounded corners */
+  font-size: 16px;           /* Readable font size */
+  cursor: pointer;           /* Pointer on hover */
+  transition: background-color 0.3s ease; /* Smooth hover transition */
+}
+
+.c1 {
+  background-color: #007bff; /* Matches the blue in the image */
+  color: #ffffff;            /* White text */
+  padding: 10px 20px;        /* Horizontal and vertical padding */
+  border: none;              /* No visible border */
+  border-radius: 6px;        /* Rounded corners */
+  font-size: 16px;           /* Readable font size */
+  cursor: pointer;           /* Pointer on hover */
+  transition: background-color 0.3s ease; /* Smooth hover transition */
+}
