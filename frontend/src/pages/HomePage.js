@@ -3,7 +3,9 @@ import axios from 'axios';
 import '../App.css';
 import SnickoMeter from './SnickoMeter';
 import HawkEyeUploader from '../components/HawkEyeUploader';
- 
+import CricketTechnologies from './CricketTechnologies'; 
+import FootballTechnologies from './FootballTechnologies';
+import TennisTechnologies from './TennisTechnologies';
 
 
 
@@ -190,11 +192,19 @@ function HomePage() {
 )}
    </section> 
 
-            {[{ title: "Cricket Technologies", data: cricketTech },
-              { title: "Football Technologies", data: footballTech },
-              { title: "Tennis Technologies", data: tennisTech },
-              { title: "General Sports Technologies", data: generalTech }]
-              .map(({ title, data }) => (
+            <CricketTechnologies cricketTech={cricketTech} />
+            <FootballTechnologies footballTech={footballTech} />
+            <TennisTechnologies tennisTech={tennisTech} />
+
+{[
+  //{ title: "Football Technologies", data: footballTech },
+  //{ title: "Tennis Technologies", data: tennisTech },
+  //{ title: "General Sports Technologies", data: generalTech }
+].map(({ title, data }) => (
+  // Existing card-rendering logic
+
+
+                
                 <section className="mb-5" key={title}>
                     <h2>{title}</h2>
                     <div className="row">
