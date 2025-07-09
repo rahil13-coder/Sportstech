@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../App.css';
 import SnickoMeter from './SnickoMeter';
+import HawkEyeUploader from '../components/HawkEyeUploader';
+ 
+
 
 
 function HomePage() {
@@ -145,8 +148,47 @@ function HomePage() {
         {snickoActive ? "Close Snicko Meter" : "Activate Snicko Meter"}
     </button>
 
-    {snickoActive && <SnickoMeter />}
-</section>
+    {snickoActive && (
+  <div
+    className="snicko-background-wrapper"
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      zIndex: 1000,
+      backgroundImage: `url('/background.jpg')`,
+      backgroundSize: 'cover',
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center',
+      padding: '20px',
+      overflowY: 'auto',
+    }}
+  >
+    {/* Back Button */}
+    <button
+      onClick={() => setSnickoActive(false)}
+      style={{
+        position: 'absolute',
+        top: '20px',
+        left: '20px',
+        padding: '10px 20px',
+        backgroundColor: '#ffffffcc',
+        border: 'none',
+        borderRadius: '8px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        zIndex: 1001,
+      }}
+    >
+      ← Back
+    </button>
+    {/* SnickoMeter Content */}
+    <SnickoMeter />
+  </div>
+)}
+   </section> 
 
             {[{ title: "Cricket Technologies", data: cricketTech },
               { title: "Football Technologies", data: footballTech },
