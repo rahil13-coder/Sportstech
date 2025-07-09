@@ -1,0 +1,7 @@
+# Ignore virtual environments and large binaries
+venv/
+backend/venv/
+*.dll
+*.pyd
+__pycache__/
+*.pyc
