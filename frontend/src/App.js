@@ -4,7 +4,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import HomePage from './pages/HomePage';
-import Cricket3 from './components/cricket3'; // adjust path if different
+import Cricket3 from './pages/cricket3'; // ✅ Correct
+
 
 function App() {
   return (
