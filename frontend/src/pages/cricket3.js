@@ -16,12 +16,10 @@ const Cricket3 = () => {
     script.async = true;
 
     script.onload = () => {
-      console.log("Widget Loaded");
       setLoading(false);
     };
 
     script.onerror = () => {
-      console.error("Widget Load Error");
       setError("Fantasy widget script load nahi ho paaya.");
       setLoading(false);
     };
@@ -55,25 +53,24 @@ const Cricket3 = () => {
   }, []);
 
   return (
-    <div className="cricket3-widget">
-      <h3>Live Cricket Scores</h3>
-      <div id="widget-container" style={{ marginTop: "20px" }} />
+    <div className="cricket3-container">
+      <h2 className="cricket3-title">🏏 Live Cricket Dashboard</h2>
+      <div id="widget-container" className="cricket3-widget" />
 
-      <hr />
-
-      {loading && <p>Loading live matches...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {!loading && !error && matches.length === 0 && <p>No live matches right now.</p>}
-
-      {!loading && matches.length > 0 && (
-        <ul>
-          {matches.map((match, index) => (
-            <li key={index}>
-              <strong>{match.name}</strong> - {match.status}
-            </li>
-          ))}
-        </ul>
+      {loading && <p className="cricket3-loading">Loading live matches...</p>}
+      {error && <p className="cricket3-error">{error}</p>}
+      {!loading && !error && matches.length === 0 && (
+        <p className="cricket3-no-matches">No live matches right now.</p>
       )}
+
+      <div className="cricket3-matches">
+        {matches.map((match, index) => (
+          <div key={index} className="cricket3-card">
+            <h3 className="cricket3-match-name">{match.name}</h3>
+            <p className="cricket3-status">{match.status}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
