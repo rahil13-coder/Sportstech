@@ -1,15 +1,17 @@
 import React, { useState } from "react";
+import Cricket3 from "./cricket3"; // filename ka case check kar lein
+import ErrorBoundary from "./ErrorBoundary";
 
 const CricketTechnologies = ({ cricketTech }) => {
   const [show, setShow] = useState(false);
   const [news, setNews] = useState([]);
   const [scores, setScores] = useState([]);
   const [activeTab, setActiveTab] = useState(null);
-  const [selectedScore, setSelectedScore] = useState(null); // New state for selected scorecard
+  const [selectedScore, setSelectedScore] = useState(null);
 
   const handleButtonClick = async (label) => {
     setActiveTab(label);
-    setSelectedScore(null); // Reset selected score when switching tabs
+    setSelectedScore(null);
 
     if (label === "Cricket News") {
       try {
@@ -18,11 +20,10 @@ const CricketTechnologies = ({ cricketTech }) => {
         );
         const data = await response.json();
         setNews(data.results || []);
-      } catch (error) {
-        console.error("Error fetching cricket news:", error);
+      } catch {
         setNews([{
-          title: "Unable to load news",
-          description: "Please check your internet connection or try again later.",
+          title: "News load nahi ho paayi",
+          description: "Internet connection check karein ya baad mein try karein.",
           image_url: null,
           link: "#"
         }]);
@@ -47,11 +48,10 @@ const CricketTechnologies = ({ cricketTech }) => {
         }));
 
         setScores(parsedScores);
-      } catch (error) {
-        console.error("Error fetching cricket scores RSS:", error);
+      } catch {
         setScores([{
-          title: "Unable to load scores",
-          description: "Please check your internet connection or try again later.",
+          title: "Scores load nahi ho paaye",
+          description: "Internet connection check karein ya baad mein try karein.",
           link: "#",
           pubDate: ""
         }]);
@@ -59,7 +59,6 @@ const CricketTechnologies = ({ cricketTech }) => {
     }
   };
 
-  // Helper to ensure https URL for scorecard links
   const getHttpsLink = (url) => {
     if (!url) return "#";
     return url.startsWith("http://") ? url.replace("http://", "https://") : url;
@@ -74,7 +73,7 @@ const CricketTechnologies = ({ cricketTech }) => {
 
       {show && (
         <div>
-          {cricketTech.length > 0 ? (
+          {cricketTech && cricketTech.length > 0 ? (
             cricketTech.map((tech) => (
               <div key={tech._id}>
                 <h5>{tech.name}</h5>
@@ -86,7 +85,11 @@ const CricketTechnologies = ({ cricketTech }) => {
           ) : (
             <div className="tech-buttons">
               {["Cricket News", "Cricket Scores", "Fantasy", "Live Stream"].map((label, index) => (
-                <button key={index} onClick={() => handleButtonClick(label)} className="tech-button">
+                <button
+                  key={index}
+                  onClick={() => handleButtonClick(label)}
+                  className={`tech-button ${activeTab === label ? "active" : ""}`}
+                >
                   {label}
                 </button>
               ))}
@@ -95,7 +98,7 @@ const CricketTechnologies = ({ cricketTech }) => {
                 <div className="news-section">
                   <h3 className="LCN">Latest Cricket News</h3>
                   <button onClick={() => setActiveTab(null)} className="back-button">⬅️ Back</button>
-                  {Array.isArray(news) && news.length > 0 ? (
+                  {news.length > 0 ? (
                     news.map((article, index) => (
                       <div key={index} className="news-article">
                         <h4 className="news-title">{article.title}</h4>
@@ -121,7 +124,7 @@ const CricketTechnologies = ({ cricketTech }) => {
                     <>
                       <h3 className="LCN">Recent Cricket Scores (via RSS)</h3>
                       <button onClick={() => setActiveTab(null)} className="back-button1">⬅️ Back</button>
-                      {Array.isArray(scores) && scores.length > 0 ? (
+                      {scores.length > 0 ? (
                         scores.map((match, index) => (
                           <div key={index} className="score-card">
                             <h4>{match.title}</h4>
@@ -129,7 +132,14 @@ const CricketTechnologies = ({ cricketTech }) => {
                             <button
                               className="score-link-button"
                               onClick={() => setSelectedScore(match)}
-                              style={{ cursor: "pointer", color: "blue", background: "none", border: "none", padding: 0, textDecoration: "underline" }}
+                              style={{
+                                cursor: "pointer",
+                                color: "blue",
+                                background: "none",
+                                border: "none",
+                                padding: 0,
+                                textDecoration: "underline"
+                              }}
                               title={getHttpsLink(match.link)}
                             >
                               View Full Scorecard
@@ -160,6 +170,18 @@ const CricketTechnologies = ({ cricketTech }) => {
                   )}
                 </div>
               )}
+
+              {activeTab === "Fantasy" && (
+                <div className="fantasy-section">
+                  <h3 className="LCN">Live Fantasy Scores</h3>
+                  <button onClick={() => setActiveTab(null)} className="back-button">⬅️ Back</button>
+                  <ErrorBoundary>
+                    <Cricket3 />
+                  </ErrorBoundary>
+                </div>
+              )}
+
+              {/* Live Stream tab ka content yahan add kar sakte hain */}
             </div>
           )}
         </div>
