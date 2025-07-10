@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Cricket3 = () => {
   const [loading, setLoading] = useState(true);
   const [matches, setMatches] = useState([]);
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (document.getElementById("cricket3-widget-script")) {
@@ -15,10 +18,7 @@ const Cricket3 = () => {
     script.id = "cricket3-widget-script";
     script.async = true;
 
-    script.onload = () => {
-      setLoading(false);
-    };
-
+    script.onload = () => setLoading(false);
     script.onerror = () => {
       setError("Fantasy widget script load nahi ho paaya.");
       setLoading(false);
@@ -54,6 +54,11 @@ const Cricket3 = () => {
 
   return (
     <div className="cricket3-container">
+      {/* 🔙 Back to Home */}
+      <button className="cricket3-back-button" onClick={() => navigate("/")}>
+        ⬅ Back
+      </button>
+
       <h2 className="cricket3-title">🏏 Live Cricket Dashboard</h2>
       <div id="widget-container" className="cricket3-widget" />
 
@@ -67,6 +72,10 @@ const Cricket3 = () => {
         {matches.map((match, index) => (
           <div key={index} className="cricket3-card">
             <h3 className="cricket3-match-name">{match.name}</h3>
+            <p className="cricket3-type">{match.matchType?.toUpperCase()}</p>
+            <p className="cricket3-teams">
+              🏏 {match.teams?.join(" vs ") || "Teams unavailable"}
+            </p>
             <p className="cricket3-status">{match.status}</p>
           </div>
         ))}
