@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ErrorBoundary from "./ErrorBoundary";
 
 const CricketTechnologies = ({ cricketTech }) => {
   const [show, setShow] = useState(false);
@@ -70,6 +69,101 @@ const CricketTechnologies = ({ cricketTech }) => {
     return url.startsWith("http://") ? url.replace("http://", "https://") : url;
   };
 
+  // === FULL SCREEN RENDERING ===
+  if (activeTab === "Cricket News") {
+    return (
+      <div className="fullscreen-section">
+        <h3 className="LCN">Latest Cricket News</h3>
+        <button onClick={() => setActiveTab(null)} className="back-button">⬅️ Back</button>
+        {news.length > 0 ? (
+          news.map((article, index) => (
+            <div key={index} className="news-article">
+              <h4 className="news-title">{article.title}</h4>
+              {article.image_url && (
+                <img src={article.image_url} alt={article.title} className="news-image" width="300" />
+              )}
+              <p className="news-description">{article.description || "No description available."}</p>
+              <a href={article.link} target="_blank" rel="noopener noreferrer" className="news-link">
+                Read more
+              </a>
+              <hr />
+            </div>
+          ))
+        ) : (
+          <p>Loading cricket news...</p>
+        )}
+      </div>
+    );
+  }
+
+  if (activeTab === "Cricket Scores") {
+    return (
+      <div className="fullscreen-section">
+        {!selectedScore ? (
+          <>
+            <button onClick={() => setActiveTab(null)} className="cricket3-back-button">
+              ⬅ Back
+            </button>
+            <h2 className="cricket3-title">🏏 Recent Cricket Scores</h2>
+            {scores.length > 0 ? (
+              <div className="cricket3-matches">
+                {scores.map((match, index) => (
+                  <div key={index} className="cricket3-card">
+                    <h3 className="cricket3-match-name">{match.title}</h3>
+                    <p className="cricket3-teams">{match.description}</p>
+                    <button
+                      className="score-link-button"
+                      onClick={() => setSelectedScore(match)}
+                      style={{
+                        cursor: "pointer",
+                        color: "#0288d1",
+                        background: "none",
+                        border: "none",
+                        padding: 0,
+                        textDecoration: "underline",
+                        marginTop: "0.5rem",
+                      }}
+                    >
+                      View Full Scorecard
+                    </button>
+                    <p className="cricket3-status">
+                      <em>{match.pubDate}</em>
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="cricket3-loading">Loading cricket scores...</p>
+            )}
+          </>
+        ) : (
+          <>
+            <button onClick={() => setSelectedScore(null)} className="cricket3-back-button">
+              ⬅ Back
+            </button>
+            <h2 className="cricket3-title">📋 Scorecard Detail</h2>
+            <div className="cricket3-card">
+              <h3 className="cricket3-match-name">{selectedScore.title}</h3>
+              <p className="cricket3-teams">{selectedScore.description}</p>
+              <a
+                href={getHttpsLink(selectedScore.link)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="news-link"
+                style={{ color: "#0288d1", textDecoration: "underline" }}
+              >
+                Open Scorecard in New Tab
+              </a>
+              <p className="cricket3-status">
+                <em>{selectedScore.pubDate}</em>
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
   return (
     <section className="cricket">
       <h2>CRICKET TECHNOLOGIES</h2>
@@ -99,83 +193,6 @@ const CricketTechnologies = ({ cricketTech }) => {
                   {label}
                 </button>
               ))}
-
-              {activeTab === "Cricket News" && (
-                <div className="news-section">
-                  <h3 className="LCN">Latest Cricket News</h3>
-                  <button onClick={() => setActiveTab(null)} className="back-button">⬅️ Back</button>
-                  {news.length > 0 ? (
-                    news.map((article, index) => (
-                      <div key={index} className="news-article">
-                        <h4 className="news-title">{article.title}</h4>
-                        {article.image_url && (
-                          <img src={article.image_url} alt={article.title} className="news-image" width="300" />
-                        )}
-                        <p className="news-description">{article.description || "No description available."}</p>
-                        <a href={article.link} target="_blank" rel="noopener noreferrer" className="news-link">
-                          Read more
-                        </a>
-                        <hr />
-                      </div>
-                    ))
-                  ) : (
-                    <p>Loading cricket news...</p>
-                  )}
-                </div>
-              )}
-
-              {activeTab === "Cricket Scores" && (
-                <div className="scores-section">
-                  {!selectedScore ? (
-                    <>
-                      <h3 className="LCN">Recent Cricket Scores (via RSS)</h3>
-                      <button onClick={() => setActiveTab(null)} className="back-button1">⬅️ Back</button>
-                      {scores.length > 0 ? (
-                        scores.map((match, index) => (
-                          <div key={index} className="score-card">
-                            <h4>{match.title}</h4>
-                            <p>{match.description}</p>
-                            <button
-                              className="score-link-button"
-                              onClick={() => setSelectedScore(match)}
-                              style={{
-                                cursor: "pointer",
-                                color: "blue",
-                                background: "none",
-                                border: "none",
-                                padding: 0,
-                                textDecoration: "underline"
-                              }}
-                              title={getHttpsLink(match.link)}
-                            >
-                              View Full Scorecard
-                            </button>
-                            <p><em>{match.pubDate}</em></p>
-                            <hr />
-                          </div>
-                        ))
-                      ) : (
-                        <p>Loading cricket scores...</p>
-                      )}
-                    </>
-                  ) : (
-                    <div className="score-detail">
-                      <h3>Scorecard Detail</h3>
-                      <button onClick={() => setSelectedScore(null)} className="back-button">⬅️ Back</button>
-                      <h4>{selectedScore.title}</h4>
-                      <p>{selectedScore.description}</p>
-                      <a
-                        href={getHttpsLink(selectedScore.link)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="news-link"
-                      >
-                        Open Scorecard in New Tab
-                      </a>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
         </div>
