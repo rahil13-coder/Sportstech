@@ -61,13 +61,13 @@ const Cricket3 = () => {
 
   return (
     <div className="cricket3-widget">
-      <h3>Live Cricket Scores (CricAPI Widget)</h3>
+      <h3>Live Cricket Scores</h3>
 
       <div id="widget-container" style={{ marginTop: "20px" }} />
 
       <hr />
 
-      <h4>Raw API Data (Optional Display)</h4>
+       
       {loading && <p>Loading live matches...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
