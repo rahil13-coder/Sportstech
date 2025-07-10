@@ -244,3 +244,185 @@ background-color: #282c34;
   cursor: pointer;           /* Pointer on hover */
   transition: background-color 0.3s ease; /* Smooth hover transition */
 }
+
+.tech-buttons {
+/*background-color: #188243; /* Matches the blue in the image */
+  color: #ffffff;            /* White text */
+  padding: 10px 20px;        /* Horizontal and vertical padding */
+  border: none;              /* No visible border */
+  border-radius: 6px;        /* Rounded corners */
+  font-size: 16px;           /* Readable font size */
+  cursor: pointer;           /* Pointer on hover */
+  transition: background-color 0.3s ease;
+}
+
+.tech-button {
+  font-size: 2cqh;
+  text-align: center;
+  margin-bottom: 2cqh;
+  font-weight: 900;
+  transition: background-color 0.3s ease; 
+  color: #000000; 
+  text-shadow: 2px 2px 8px rgb(0, 0, 0); 
+  letter-spacing: 2px;
+  animation: fadeIn 2s ease-in-out;
+  width: fit-content; /* Modern way to auto-size based on content */
+  margin: 0 auto;
+  background-color: #49b375;
+}
+
+.news-section {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f9f9f9;
+  overflow-y: auto;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.back-button {
+  background-color: #ddd;
+  border: none;
+  padding: 8px 16px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 5px;
+  color: #000;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+.back-button:hover {
+  background-color: #bbb;
+  color: #444;
+}
+
+.news-article {
+  background-color: #fefefe; /* bright cricket-news blue background */
+  border-radius: 15px;
+  padding: 20px 30px;
+  margin: 20px auto;
+  max-width: 900px;
+  box-shadow: 0 6px 12px rgba(6, 111, 255, 0.4);
+  color: #182757; /* dark blue text for headlines */
+  font-weight: 600;
+  line-height: 1.6;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  user-select: text;
+}
+.LCN {
+  font-size: 3rem; /* large title */
+  text-align: center;
+  margin-bottom: 2rem;
+  font-weight: 800;
+  color: rgb(0, 0, 0); /* white text for dark backgrounds */
+  text-shadow: 2px 2px 8px rgb(255, 255, 255); /* stylish shadow */
+  letter-spacing: 2px;
+  animation: fadeIn 2s ease-in-out;
+}
+
+.news-article:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 24px rgba(6, 111, 255, 0.6);
+}
+
+.news-image {
+  display: block;
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin: 15px 0 20px 0;
+  box-shadow: 0 4px 8px rgba(0, 103, 255, 0.5);
+}
+
+.news-title {
+  font-size: 1.3rem;
+  color: #182757;
+  margin-bottom: 12px;
+  text-align: center;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.4);
+  user-select: text;
+}
+
+.news-description {
+  font-size: 1rem;
+  color: #2543d0;  /* medium dark blue */
+  margin-bottom: 15px;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
+  text-align: justify;
+  user-select: text;
+}
+
+.news-link {
+  display: block;
+  width: max-content;
+  margin: 0 auto;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1c38df;
+  text-decoration: none;
+  letter-spacing: 1.5px;
+  text-shadow: 1px 2px 3px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  user-select: text;
+  transition: color 0.3s ease;
+}
+
+.news-link:hover {
+  color: #003edc;
+  text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .news-article {
+    padding: 15px 20px;
+    border-radius: 12px;
+  }
+  .news-image {
+    max-height: 200px;
+    margin: 15px 0;
+  }
+  .news-title {
+    font-size: 1.1rem;
+  }
+  .news-description {
+    font-size: 0.9rem;
+  }
+}
+
+
+
+
+.full-screen {
+  padding: 20px;
+  background-color: #f9f9f9;
+  margin-top: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.back-button1 {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  margin-bottom: 10px;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.back-button1:hover {
+  background-color: #0056b3;
+}
+
