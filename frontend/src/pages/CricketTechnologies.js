@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Cricket3 from "./cricket3"; // filename ka case check kar lein
+import { useNavigate } from "react-router-dom";
 import ErrorBoundary from "./ErrorBoundary";
 
 const CricketTechnologies = ({ cricketTech }) => {
@@ -8,6 +8,8 @@ const CricketTechnologies = ({ cricketTech }) => {
   const [scores, setScores] = useState([]);
   const [activeTab, setActiveTab] = useState(null);
   const [selectedScore, setSelectedScore] = useState(null);
+
+  const navigate = useNavigate();
 
   const handleButtonClick = async (label) => {
     setActiveTab(label);
@@ -56,6 +58,10 @@ const CricketTechnologies = ({ cricketTech }) => {
           pubDate: ""
         }]);
       }
+    }
+
+    if (label === "Fantasy") {
+      navigate("/fantasy");
     }
   };
 
@@ -170,18 +176,6 @@ const CricketTechnologies = ({ cricketTech }) => {
                   )}
                 </div>
               )}
-
-              {activeTab === "Fantasy" && (
-                <div className="fantasy-section">
-                  <h3 className="LCN">Live Fantasy Scores</h3>
-                  <button onClick={() => setActiveTab(null)} className="back-button">⬅️ Back</button>
-                  <ErrorBoundary>
-                    <Cricket3 />
-                  </ErrorBoundary>
-                </div>
-              )}
-
-              {/* Live Stream tab ka content yahan add kar sakte hain */}
             </div>
           )}
         </div>
