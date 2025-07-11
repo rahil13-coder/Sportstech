@@ -20,7 +20,8 @@ ffmpeg.setFfprobePath(ffprobeInstaller.path);
 // Enhanced CORS Configuration
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://sportstech-frontend.onrender.com'
+  'https://sportstech-frontend.onrender.com',
+  'https://occasion.ltd'
 ];
 
 app.use((req, res, next) => {

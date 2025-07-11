@@ -12,6 +12,7 @@ const Cricket3 = () => {
   const [upcomingMatches, setUpcomingMatches] = useState([]);
   const [recentMatches, setRecentMatches] = useState([]);
   const [scorecard, setScorecard] = useState(null);
+  const [cricapiMatches, setCricapiMatches] = useState([]); // CricAPI state
 
   const navigate = useNavigate();
 
@@ -24,62 +25,90 @@ const Cricket3 = () => {
     );
   };
 
-  useEffect(() => {
-    const fetchCrickbuzzData = async () => {
-      try {
-        const headers = {
-          "x-rapidapi-host": RAPIDAPI_HOST,
-          "x-rapidapi-key": RAPIDAPI_KEY,
-        };
+  const fetchCricapiData = async () => {
+    try {
+      const cricapiRes = await fetch(
+        "https://api.cricapi.com/v1/currentMatches?apikey=6a9b0faf-e72f-4a5b-a8c0-051bca170525&offset=0"
+      );
+      const cricapiJson = await cricapiRes.json();
 
-        const liveRes = await fetch(
-          "https://cricbuzz-cricket.p.rapidapi.com/matches/v1/live",
-          { headers }
-        );
-        const liveJson = await liveRes.json();
-        const extractedLive = extractMatches(liveJson);
-        setLiveMatches(extractedLive);
-
-        const upcomingRes = await fetch(
-          "https://cricbuzz-cricket.p.rapidapi.com/matches/v1/upcoming",
-          { headers }
-        );
-        const upcomingJson = await upcomingRes.json();
-        const extractedUpcoming = extractMatches(upcomingJson);
-        setUpcomingMatches(extractedUpcoming);
-
-        const recentRes = await fetch(
-          "https://cricbuzz-cricket.p.rapidapi.com/matches/v1/recent",
-          { headers }
-        );
-        const recentJson = await recentRes.json();
-        const extractedRecent = extractMatches(recentJson);
-        setRecentMatches(extractedRecent);
-
-        const sampleMatchId = extractedRecent?.[0]?.matchInfo?.matchId;
-        if (sampleMatchId) {
-          const scorecardRes = await fetch(
-            `https://cricbuzz-cricket.p.rapidapi.com/mcenter/v1/${sampleMatchId}/scard`,
-            { headers }
-          );
-          const scorecardJson = await scorecardRes.json();
-          setScorecard(scorecardJson);
-        }
-
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching match data:", err);
-        setError("Unable to fetch match data.");
-        setLoading(false);
+      if (cricapiJson.status === "success" && cricapiJson.data) {
+        setCricapiMatches(cricapiJson.data);
+        return true;
+      } else {
+        console.warn("CricAPI response not successful:", cricapiJson);
+        return false;
       }
+    } catch (err) {
+      console.error("CricAPI failed:", err);
+      return false;
+    }
+  };
+
+  const fetchCrickbuzzData = async () => {
+    try {
+      const headers = {
+        "x-rapidapi-host": RAPIDAPI_HOST,
+        "x-rapidapi-key": RAPIDAPI_KEY,
+      };
+
+      const liveRes = await fetch(
+        "https://cricbuzz-cricket.p.rapidapi.com/matches/v1/live",
+        { headers }
+      );
+      const liveJson = await liveRes.json();
+      setLiveMatches(extractMatches(liveJson));
+
+      const upcomingRes = await fetch(
+        "https://cricbuzz-cricket.p.rapidapi.com/matches/v1/upcoming",
+        { headers }
+      );
+      const upcomingJson = await upcomingRes.json();
+      setUpcomingMatches(extractMatches(upcomingJson));
+
+      const recentRes = await fetch(
+        "https://cricbuzz-cricket.p.rapidapi.com/matches/v1/recent",
+        { headers }
+      );
+      const recentJson = await recentRes.json();
+      const extractedRecent = extractMatches(recentJson);
+      setRecentMatches(extractedRecent);
+
+      const sampleMatchId = extractedRecent?.[0]?.matchInfo?.matchId;
+      if (sampleMatchId) {
+        const scorecardRes = await fetch(
+          `https://cricbuzz-cricket.p.rapidapi.com/mcenter/v1/${sampleMatchId}/scard`,
+          { headers }
+        );
+        const scorecardJson = await scorecardRes.json();
+        setScorecard(scorecardJson);
+      }
+    } catch (err) {
+      console.error("Error fetching match data from RapidAPI:", err);
+      setError("Unable to fetch match data.");
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+
+      const cricapiWorked = await fetchCricapiData();
+      if (!cricapiWorked) {
+        await fetchCrickbuzzData(); // fallback to RapidAPI
+      }
+
+      setLoading(false);
     };
 
-    fetchCrickbuzzData();
+    fetchData();
   }, []);
 
   const renderMatchCard = (match, idx) => (
     <div key={idx} className="match-card-container">
-      <div className="match-card-title">{match.matchInfo?.seriesName || "Match Series"}</div>
+      <div className="match-card-title">
+        {match.matchInfo?.seriesName || "Match Series"}
+      </div>
       <div className="match-card-teams">
         <span>{match.matchInfo?.team1?.teamName}</span> vs{" "}
         <span>{match.matchInfo?.team2?.teamName}</span>
@@ -101,38 +130,51 @@ const Cricket3 = () => {
 
       {!loading && (
         <>
-          <section className="match-section">
-            <h3 className="section-title">🟢 Cricbuzz Live Matches</h3>
-            <div className="match-list">
-              {liveMatches.length === 0 ? (
-                <p>No live matches.</p>
-              ) : (
-                liveMatches.map(renderMatchCard)
-              )}
-            </div>
-          </section>
+          {/* CricAPI Section */}
+          {cricapiMatches.length > 0 && (
+            <section className="match-section">
+              <h3 className="section-title">🌐 CricAPI Matches</h3>
+              <div className="match-list">
+                {cricapiMatches.map((match, idx) => (
+                  <div key={idx} className="match-card-container">
+                    <div className="match-card-title">{match.name || "Match"}</div>
+                    <div className="match-card-teams">
+                      {match.teams?.[0]} vs {match.teams?.[1]}
+                    </div>
+                    <div className="match-card-status">{match.status}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
-          <section className="match-section">
-            <h3 className="section-title">🟠 Upcoming Matches</h3>
-            <div className="match-list">
-              {upcomingMatches.length === 0 ? (
-                <p>No upcoming matches.</p>
-              ) : (
-                upcomingMatches.map(renderMatchCard)
-              )}
-            </div>
-          </section>
+          {/* Cricbuzz Sections */}
+          {liveMatches.length > 0 && (
+            <section className="match-section">
+              <h3 className="section-title">🟢 Cricbuzz Live Matches</h3>
+              <div className="match-list">
+                {liveMatches.map(renderMatchCard)}
+              </div>
+            </section>
+          )}
 
-          <section className="match-section">
-            <h3 className="section-title">🟡 Recent Matches</h3>
-            <div className="match-list">
-              {recentMatches.length === 0 ? (
-                <p>No recent matches.</p>
-              ) : (
-                recentMatches.map(renderMatchCard)
-              )}
-            </div>
-          </section>
+          {upcomingMatches.length > 0 && (
+            <section className="match-section">
+              <h3 className="section-title">🟠 Upcoming Matches</h3>
+              <div className="match-list">
+                {upcomingMatches.map(renderMatchCard)}
+              </div>
+            </section>
+          )}
+
+          {recentMatches.length > 0 && (
+            <section className="match-section">
+              <h3 className="section-title">🟡 Recent Matches</h3>
+              <div className="match-list">
+                {recentMatches.map(renderMatchCard)}a
+              </div>
+            </section>
+          )}
 
           <section className="match-section">
             <h3 className="section-title">📊 Scorecard (Recent Match)</h3>
