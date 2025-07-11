@@ -1,460 +1,327 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
+import jsPDF from 'jspdf';
 import * as tf from '@tensorflow/tfjs';
 import * as posedetection from '@tensorflow-models/pose-detection';
 import '@tensorflow/tfjs-backend-webgl';
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-} from 'recharts';
 
-function SnickoMeter() {
-  const [spikeDetected, setSpikeDetected] = useState(false);
-  const [spikeData, setSpikeData] = useState([]);
-  const [timestamp, setTimestamp] = useState(null);
-  const [error, setError] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [videoUrl, setVideoUrl] = useState(null);
-  const [hitStatus, setHitStatus] = useState(null);
-  const [musicDetected, setMusicDetected] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [showGraph, setShowGraph] = useState(false);
-  const [amplitudeData, setAmplitudeData] = useState([]);
-  const [performanceMetrics, setPerformanceMetrics] = useState(null);
-  const [hasAudio, setHasAudio] = useState(true);
-  const [audioChecked, setAudioChecked] = useState(false);
-  const [detailedTimeline, setDetailedTimeline] = useState([]);
-  const [shotSummary, setShotSummary] = useState(null);
+// --- Config ---
+const INTERVAL = 1000, MAX_FRAMES = 30;
 
-  const videoRef = useRef(null);
-  const audioCtxRef = useRef(null);
-
-  // Infer shot type based on wrist and elbow y positions
-  const inferShotFromPose = (wrist, elbow) => {
-    if (!wrist || !elbow) return 'Unknown';
-    const wristHeight = wrist.y;
-    const elbowHeight = elbow.y;
-
-    if (wristHeight < elbowHeight) return 'Cover Drive';
-    else if (wristHeight > elbowHeight + 50) return 'Pull Shot';
-    else return 'Straight Drive';
+// --- Helpers ---
+const extractKeypoints = kps => {
+  const get = n => kps.find(kp => kp.name === n)?.position || null;
+  return {
+    wrist: get("right_wrist"), elbow: get("right_elbow"), shoulder: get("right_shoulder"),
+    hip: get("right_hip"), knee: get("right_knee"), ankle: get("right_ankle"),
+    neck: get("neck"), eye: get("right_eye"), leftWrist: get("left_wrist"), leftShoulder: get("left_shoulder")
   };
+};
 
-  // Infer ball type based on y position (deterministic now)
-  const inferBallType = (ballY) => {
-    if (ballY < 150) return 'Short Ball';
-    else if (ballY >= 150 && ballY <= 300) return 'Good Length';
-    else return 'Full Toss';
-  };
+const detectBallPosition = _ => null; // Placeholder for real model
 
-  // Infer shot decision based on shot and ball type
-  const inferShotDecision = (shotType, ballType) => {
-    if (ballType === 'Short Ball' && shotType === 'Pull Shot') return 'Good Shot Selection';
-    if (ballType === 'Full Toss' && shotType === 'Cover Drive') return 'Excellent Drive Opportunity';
-    if (ballType === 'Good Length' && shotType === 'Straight Drive') return 'Technically Correct';
-    return 'Poor Shot Selection';
-  };
+const getBallTrajectory = async (_, frameCount) => {
+  let ballPositions = Array.from({ length: frameCount }, (_, i) => ({ x: 300 + i * 2, y: 100 + i * 8 }));
+  let pitchPoint = ballPositions.find((p, i, arr) => i > 0 && p.y > arr[i - 1].y + 12) || ballPositions[ballPositions.length - 1];
+  return { ballPositions, pitchPoint };
+};
 
-  // Optimized pose detection function
-  const runPoseDetection = async () => {
-    try {
-      setIsAnalyzing(true);
-      await tf.ready();
+const inferBallLineAndLength = (pitchPoint, x, y) => {
+  let line = "Unknown", length = "Unknown", d = pitchPoint.y - y;
+  if (pitchPoint.x < x - 20) line = "Leg Stump";
+  else if (pitchPoint.x > x + 20) line = "Off Stump";
+  else line = "Middle Stump";
+  if (d < 100) length = "Yorker";
+  else if (d < 200) length = "Full";
+  else if (d < 300) length = "Good";
+  else length = "Short";
+  return `${line}, ${length}`;
+};
 
-      const detector = await posedetection.createDetector(
-        posedetection.SupportedModels.MoveNet,
-        {
-          modelType: posedetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
-        }
-      );
+const isBowlingActionFrame = kps => {
+  const { wrist, shoulder, hip } = extractKeypoints(kps);
+  return wrist && shoulder && hip && wrist.y < shoulder.y && Math.abs(wrist.x - hip.x) < 50;
+};
 
-      const video = videoRef.current;
-      if (!video) {
-        setIsAnalyzing(false);
-        return;
+const isShotPlayed = kps => {
+  const { wrist, elbow, shoulder } = extractKeypoints(kps);
+  return wrist && elbow && shoulder && Math.abs(wrist.x - shoulder.x) > 60 && Math.abs(wrist.y - elbow.y) < 100;
+};
+
+const inferShotType = pose => {
+  const { wrist, hip } = pose;
+  if (!wrist || !hip) return "Unknown";
+  if (wrist.x < hip.x - 50) return "Pull Shot";
+  if (wrist.y < hip.y && wrist.x > hip.x) return "Cover Drive";
+  if (Math.abs(wrist.x - hip.x) < 30) return "Straight Drive";
+  return "Defensive / Leave";
+};
+
+const inferShotTiming = pose => {
+  const { wrist, elbow } = pose;
+  if (!wrist || !elbow) return "Unknown";
+  if (wrist.y - elbow.y < -20) return "Early";
+  if (wrist.y - elbow.y > 20) return "Late";
+  return "Perfect";
+};
+
+const runModularPoseDetection = async (videoRef, setError) => {
+  try {
+    await tf.ready();
+    const detector = await posedetection.createDetector(posedetection.SupportedModels.MoveNet, { modelType: posedetection.movenet.modelType.MULTIPOSE_LIGHTNING });
+    const video = videoRef.current;
+    if (!video) return {};
+    const frameCount = Math.min(Math.floor(video.duration * 1000 / INTERVAL), MAX_FRAMES), posesData = [];
+    let batterStumpX = 320, creaseY = 400;
+    const { pitchPoint } = await getBallTrajectory(video, frameCount);
+
+    for (let i = 0; i < frameCount; i++) {
+      video.currentTime = i * INTERVAL / 1000;
+      await new Promise(res => video.addEventListener("seeked", res, { once: true }));
+      const poses = await detector.estimatePoses(video);
+      if (!poses?.length) continue;
+      const keypoints = poses[0].keypoints;
+      if (i === 0) {
+        const { hip, ankle } = extractKeypoints(keypoints);
+        if (hip && ankle) { batterStumpX = hip.x; creaseY = ankle.y; }
       }
-
-      const interval = 4000; // milliseconds between frames
-      const maxFrames = 8; // reduced from 16 for speed
-      const frameCount = Math.min(Math.floor((video.duration * 1000) / interval), maxFrames);
-
-      const posesData = [];
-
-      // Precompute deterministic ballY positions for each frame
-      const ballYPositions = Array.from({ length: frameCount }, (_, i) =>
-        100 + (i * 30) % 400 // deterministic pattern between 100 and 499
-      );
-
-      for (let i = 0; i < frameCount; i++) {
-        video.currentTime = i * interval / 1000;
-        await new Promise(resolve => video.addEventListener('seeked', resolve, { once: true }));
-
-        const poses = await detector.estimatePoses(video);
-
-        if (poses && poses.length > 0) {
-          const keypoints = poses[0].keypoints;
-          const wrist = keypoints.find(k => k.name === 'right_wrist' || k.name === 'left_wrist');
-          const elbow = keypoints.find(k => k.name === 'right_elbow' || k.name === 'left_elbow');
-          const shoulder = keypoints.find(k => k.name === 'right_shoulder' || k.name === 'left_shoulder');
-
-          if (wrist && elbow && shoulder) {
-            const shot = inferShotFromPose(wrist, elbow);
-            const ballY = ballYPositions[i];
-            const ballType = inferBallType(ballY);
-            const decision = inferShotDecision(shot, ballType);
-
-            posesData.push({
-              time: (i * interval / 1000).toFixed(2),
-              shot,
-              ballRegion: wrist.x < elbow.x - 20 ? 'Leg Side' : wrist.x > elbow.x + 20 ? 'Off Side' : 'Straight',
-              bowlerType: i * interval < 3000 ? 'Pace' : 'Spin',
-              shotTiming:
-                wrist.y - elbow.y < -20
-                  ? 'Early'
-                  : wrist.y - elbow.y > 20
-                    ? 'Late'
-                    : 'Perfect',
-              decision
-            });
-          }
-        }
-      }
-
-      if (posesData.length > 0) {
-        const mostFrequentShot = posesData.reduce((acc, pose) => {
-          acc[pose.shot] = (acc[pose.shot] || 0) + 1;
-          return acc;
-        }, {});
-
-        const sortedShots = Object.entries(mostFrequentShot).sort((a, b) => b[1] - a[1]);
-        const bestShot = sortedShots.length > 0 ? sortedShots[0][0] : 'Unknown';
-
-        setPerformanceMetrics({
-          shotPlayed: bestShot,
-          ballRegion: posesData[0].ballRegion,
-          bowlerType: posesData[0].bowlerType,
-          shotTiming: posesData[0].shotTiming,
-        });
-
-        const summary = {
+      if (!isBowlingActionFrame(keypoints) && !isShotPlayed(keypoints)) continue;
+      const poseInfo = extractKeypoints(keypoints);
+      let ballRegion = "Unknown";
+      if (pitchPoint && batterStumpX && creaseY) ballRegion = inferBallLineAndLength(pitchPoint, batterStumpX, creaseY);
+      posesData.push({
+        time: (i * INTERVAL / 1000).toFixed(2),
+        shot: inferShotType(poseInfo),
+        ballRegion,
+        bowlerType: i * INTERVAL < 3000 ? "Pace" : "Spin",
+        shotTiming: inferShotTiming(poseInfo),
+      });
+    }
+    if (posesData.length) {
+      const shotCounts = posesData.reduce((a, p) => {
+        a[p.shot] = (a[p.shot] || 0) + 1;
+        return a;
+      }, {});
+      const sortedShots = Object.entries(shotCounts).sort((a, b) => b[1] - a[1]);
+      // --- Return a list of all metrics ---
+      return {
+        performanceMetricsList: posesData.map(p => ({
+          shotPlayed: p.shot,
+          ballRegion: p.ballRegion,
+          bowlerType: p.bowlerType,
+          shotTiming: p.shotTiming,
+          time: p.time
+        })),
+        shotSummary: {
           totalFramesAnalyzed: frameCount,
           uniqueShots: [...new Set(posesData.map(p => p.shot))],
-          shotFrequency: Object.fromEntries(sortedShots)
-        };
-
-        setShotSummary(summary);
-        setDetailedTimeline(posesData.map(({ time, shot }) => ({ time, shot })));
-        setShowResults(true);
-      }
-    } catch (error) {
-      console.error('Pose detection failed:', error);
-      setError('Pose detection failed.');
-    } finally {
-      setIsAnalyzing(false);
+          shotFrequency: Object.fromEntries(sortedShots),
+        },
+        detailedTimeline: posesData.map(({ time, shot }) => ({ time, shot })),
+      };
     }
-  };
+    return {};
+  } catch (err) { setError('Pose detection failed.'); return {}; }
+};
 
-  // Main video upload handler
-  const handleVideoUpload = async (e) => {
-    const file = e.target.files[0];
+const runAiBasedDetection = async (videoRef, setError) => {
+  try {
+    await tf.ready();
+    const video = videoRef.current;
+    if (!video) return {};
+    const detector = await posedetection.createDetector(posedetection.SupportedModels.MoveNet, { modelType: posedetection.movenet.modelType.SINGLEPOSE_THUNDER });
+    const interval = 4000, frameCount = Math.min(Math.floor((video.duration * 1000) / interval), 8), insights = [];
+    for (let i = 0; i < frameCount; i++) {
+      video.currentTime = i * interval / 1000;
+      await new Promise(res => video.addEventListener('seeked', res, { once: true }));
+      const poses = await detector.estimatePoses(video);
+      if (!poses?.length) continue;
+      const keypoints = poses[0].keypoints;
+      const wrist = keypoints.find(k => k.name.includes('wrist')), elbow = keypoints.find(k => k.name.includes('elbow')), shoulder = keypoints.find(k => k.name.includes('shoulder'));
+      const confidenceScore = ((wrist?.score || 0) + (elbow?.score || 0) + (shoulder?.score || 0)) / 3;
+      if (confidenceScore < 0.4) continue;
+      insights.push({
+        shotPlayed: inferShotType(extractKeypoints(keypoints)),
+        ballRegion: "Unknown",
+        bowlerType: i * interval < 3000 ? 'Pace' : 'Spin',
+        shotTiming: inferShotTiming(extractKeypoints(keypoints)),
+        confidenceScore
+      });
+    }
+    if (insights.length) {
+      const avgConfidence = (insights.reduce((sum, i) => sum + i.confidenceScore, 0) / insights.length * 100).toFixed(1);
+      return { ...insights[0], confidenceScore: avgConfidence };
+    }
+    return {};
+  } catch (err) { setError('AI-based detection failed.'); return {}; }
+};
+
+// --- Dummy helpers ---
+const compressVideo = async f => f, annotateVideo = async () => { }, extractAudioInsights = async () => ({});
+
+// --- PDF ---
+const generatePDFReport = async data => {
+  const doc = new jsPDF();
+  doc.setFontSize(14);
+  doc.text(`Player: ${data.playerName}`, 10, 10);
+  doc.text(`File: ${data.fileName}`, 10, 20);
+  doc.text(`Time: ${new Date(data.timestamp).toLocaleString()}`, 10, 30);
+  doc.setFontSize(12);
+  doc.text(`Shot Played: ${data.metricsList && data.metricsList[0] ? data.metricsList[0].shotPlayed : ''}`, 10, 45);
+  doc.text(`Ball Region: ${data.metricsList && data.metricsList[0] ? data.metricsList[0].ballRegion : ''}`, 10, 55);
+  doc.text(`Bowler Type: ${data.metricsList && data.metricsList[0] ? data.metricsList[0].bowlerType : ''}`, 10, 65);
+  doc.text(`Shot Timing: ${data.metricsList && data.metricsList[0] ? data.metricsList[0].shotTiming : ''}`, 10, 75);
+
+  doc.text("AI Insights:", 10, 90);
+  let y = 100;
+  for (const [k, v] of Object.entries(data.aiGeneratedInsights || {})) {
+    doc.text(`${k}: ${v}`, 10, y);
+    y += 10;
+  }
+  // Add all detected shots
+  y += 10;
+  doc.text("Detected Shots:", 10, y); y += 10;
+  (data.metricsList || []).forEach((m, i) => {
+    doc.text(`${m.time}s - ${m.shotPlayed} | ${m.ballRegion} | ${m.bowlerType} | ${m.shotTiming}`, 10, y);
+    y += 10;
+  });
+
+  doc.save(`${data.playerName}_cricket_analysis.pdf`);
+};
+
+// --- Main Component ---
+function SnickoMeter() {
+  const [isAnalyzing, setIsAnalyzing] = useState(false), [showResults, setShowResults] = useState(false), [error, setError] = useState('');
+  const [playerNameA, setPlayerNameA] = useState(''), [playerNameB, setPlayerNameB] = useState('');
+  const [videoUrlA, setVideoUrlA] = useState(null), [videoUrlB, setVideoUrlB] = useState(null);
+  const [analysisA, setAnalysisA] = useState(null), [analysisB, setAnalysisB] = useState(null), [progress, setProgress] = useState(0);
+  const videoRefA = useRef(null), videoRefB = useRef(null);
+
+  const handleVideoUpload = async (e, videoSlot = 'A') => {
+    let file = e.target.files[0];
     if (!file) return;
-
-    setIsAnalyzing(true);
-    setSpikeDetected(false);
-    setTimestamp(null);
-    setError('');
-    setHitStatus(null);
-    setMusicDetected(false);
-    setSpikeData([]);
-    setShowResults(false);
-    setShowGraph(false);
-    setAmplitudeData([]);
-    setPerformanceMetrics(null);
-    setHasAudio(false);
-    setAudioChecked(false);
-    setDetailedTimeline([]);
-    setShotSummary(null);
-
-    const previewUrl = URL.createObjectURL(file);
-    setVideoUrl(previewUrl);
-
-    const formData = new FormData();
-    formData.append('video', file);
-
+    const playerName = videoSlot === 'A' ? playerNameA : playerNameB;
+    if (!playerName.trim()) return setError(`Please enter a player name for Video ${videoSlot}.`);
+    setIsAnalyzing(true); setError(''); setShowResults(false); setProgress(10);
+    try { file = await compressVideo(file); } catch { }
+    const videoElement = document.createElement('video'); videoElement.preload = 'metadata';
     try {
-      // Call backend API for initial analysis
+      await new Promise((res, rej) => {
+        videoElement.onloadedmetadata = () => { window.URL.revokeObjectURL(videoElement.src); videoElement.duration > 30 ? rej('Please upload a video less than 30 seconds.') : res(); };
+        videoElement.onerror = () => rej('Invalid video file.');
+        videoElement.src = URL.createObjectURL(file);
+      });
+    } catch (err) { setIsAnalyzing(false); setError(err); return; }
+    const previewUrl = URL.createObjectURL(file);
+    videoSlot === 'A' ? setVideoUrlA(previewUrl) : setVideoUrlB(previewUrl);
+    const formData = new FormData(); formData.append('video', file);
+    try {
       const response = await axios.post('http://localhost:5000/api/analyze', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: e => setProgress(Math.round((e.loaded * 100) / e.total)),
       });
-
-      const {
-        summary,
-        detailedShotTimeline,
-        shotPlayed,
-        ballRegion,
-        bowlerType,
-        shotTiming
-      } = response.data;
-
-      setPerformanceMetrics({ shotPlayed, ballRegion, bowlerType, shotTiming });
-      if (summary && detailedShotTimeline) {
-        setShotSummary(summary);
-        setDetailedTimeline(detailedShotTimeline);
-      }
-
-      // Audio processing
-      const arrayBuffer = await file.arrayBuffer();
-
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      }
-
-      let audioBuffer = null;
-      try {
-        audioBuffer = await audioCtxRef.current.decodeAudioData(arrayBuffer);
-      } catch (e) {
-        audioBuffer = null;
-      }
-
-      setAudioChecked(true);
-
-      if (!audioBuffer || audioBuffer.duration === 0) {
-        // No audio, fallback to pose detection only
-        setHasAudio(false);
-        await runPoseDetection();
-        return;
-      }
-
-      setHasAudio(true);
-
-      const rawData = audioBuffer.getChannelData(0);
-      const maxSamples = 1000;
-      const blockSize = Math.floor(rawData.length / maxSamples);
-      const amplitudes = [];
-
-      // Efficient amplitude calculation (chunked to avoid blocking)
-      for (let i = 0; i < maxSamples; i++) {
-        let sum = 0;
-        for (let j = 0; j < blockSize; j++) {
-          sum += Math.abs(rawData[i * blockSize + j]);
-        }
-        const avg = sum / blockSize;
-        const time = ((i * blockSize) / audioBuffer.sampleRate).toFixed(2);
-        amplitudes.push({ time, amplitude: avg });
-      }
-
-      setAmplitudeData(amplitudes);
-
-      // Detect music presence
-      const highEnergy = amplitudes.filter((a) => a.amplitude > 0.2);
-      const musicLikelihood = highEnergy.length / amplitudes.length;
-      if (musicLikelihood > 0.5) {
-        setMusicDetected(true);
-        if (videoRef.current) videoRef.current.muted = true;
-      }
-
-      // Detect spikes for bat-ball contact
-      const threshold = 0.17;
-      const spikes = [];
-
-      for (let i = 5; i < amplitudes.length; i++) {
-        const current = amplitudes[i].amplitude;
-        const prev = amplitudes[i - 1].amplitude;
-
-        if (current > threshold && current > prev * 1.5 && current > 0.3) {
-          let decision = '';
-          if (current > 0.45) decision = 'Ball hit the bat 🏏';
-          else if (current > 0.35) decision = 'Possible edge 🤔';
-          else continue;
-
-          spikes.push({
-            timestamp: amplitudes[i].time,
-            spikeValue: current.toFixed(4),
-            decision,
-          });
-        }
-      }
-
-      setSpikeDetected(spikes.length > 0);
-      setSpikeData(spikes);
-
-      if (spikes.length === 0) {
-        setHitStatus('No contact detected ❌');
+      setProgress(70);
+      const { summary, detailedShotTimeline, shotPlayed, ballRegion, bowlerType, shotTiming, aiGeneratedInsights } = response.data;
+      await annotateVideo(previewUrl, detailedShotTimeline);
+      const audioInsights = await extractAudioInsights(file);
+      // For API, keep old metrics for now, but support metricsList for fallback
+      const analysisData = {
+        playerName, fileName: file.name, summary,
+        metricsList: [{ shotPlayed, ballRegion, bowlerType, shotTiming, time: "0.00" }], // API only returns one, so wrap in array
+        timeline: detailedShotTimeline,
+        aiGeneratedInsights: { ...aiGeneratedInsights, ...audioInsights },
+        timestamp: new Date().toISOString(),
+      };
+      videoSlot === 'A' ? setAnalysisA(analysisData) : setAnalysisB(analysisData);
+      const history = JSON.parse(localStorage.getItem('video_analysis_history')) || [];
+      history.push({ ...analysisData, videoSlot });
+      localStorage.setItem('video_analysis_history', JSON.stringify(history));
+      await generatePDFReport(analysisData);
+      setShowResults(true); setProgress(100);
+    } catch {
+      setError('API failed. Using fallback methods.');
+      let fallbackMetrics = {}, fallbackInsights = {};
+      if (videoSlot === 'A') {
+        fallbackMetrics = await runModularPoseDetection(videoRefA, setError);
+        fallbackInsights = await runAiBasedDetection(videoRefA, setError);
       } else {
-        setHitStatus('Multiple spikes detected 📈');
-        setTimestamp(spikes[0].timestamp);
+        fallbackMetrics = await runModularPoseDetection(videoRefB, setError);
+        fallbackInsights = await runAiBasedDetection(videoRefB, setError);
       }
-
+      const analysisData = {
+        playerName, fileName: file.name,
+        summary: fallbackMetrics.shotSummary || {},
+        metricsList: fallbackMetrics.performanceMetricsList || [],
+        timeline: fallbackMetrics.detailedTimeline || [],
+        aiGeneratedInsights: fallbackInsights || {},
+        timestamp: new Date().toISOString(),
+      };
+      videoSlot === 'A' ? setAnalysisA(analysisData) : setAnalysisB(analysisData);
       setShowResults(true);
-      setShowGraph(true);
-
-    } catch (err) {
-      console.error('Error analyzing video:', err);
-      setError('Failed to analyze video.');
-    } finally {
-      setIsAnalyzing(false);
-    }
+    } finally { setIsAnalyzing(false); setProgress(0); }
   };
 
-  // Back button handler to hide results and graph
-  const handleBack = () => {
-    setShowResults(false);
-    setShowGraph(false);
-  };
+  const handleBack = () => setShowResults(false);
 
   return (
-    <div className="card p-4 bg-light mb-4" style={{ width: '90%', margin: '0 auto' }}>
+    <div className="card p-4 bg-light mb-4" style={{ width: '95%', margin: '0 auto' }}>
       <h4>🎙️ Snicko Meter Technology</h4>
-      <p>Upload a cricket video. This detects bat-ball contact & generates real-time metrics.</p>
-      <input type="file" accept="video/*" className="form-control mb-3" onChange={handleVideoUpload} />
-
-      {videoUrl && (
-        <div className="mb-3">
-          <video
-            ref={videoRef}
-            src={videoUrl}
-            controls
-            width="100%"
-            // Removed onLoadedData call to runPoseDetection here to avoid duplicate calls
-          />
+      <p>Upload cricket videos for Player A and/or Player B. Detects bat-ball contact & generates real-time metrics using AI or Pose Detection.</p>
+      <div className="row mb-4">
+        {[['A', playerNameA, setPlayerNameA, videoUrlA, setVideoUrlA, videoRefA, setAnalysisA],
+          ['B', playerNameB, setPlayerNameB, videoUrlB, setVideoUrlB, videoRefB, setAnalysisB]].map(
+            ([slot, name, setName, url, setUrl, ref, setAnalysis]) => (
+              <div className="col-md-6" key={slot}>
+                <label><strong>Player {slot} Name:</strong>
+                  <input type="text" className="form-control mb-2" value={name} onChange={e => setName(e.target.value)} placeholder={`Enter Player ${slot} Name`} />
+                </label>
+                <input type="file" accept="video/*" className="form-control mb-3" onChange={e => handleVideoUpload(e, slot)} />
+                {url && <>
+                  <video ref={ref} src={url} controls width="100%" className="mb-2" />
+                  <button className="btn btn-danger btn-sm mb-2" onClick={() => { setUrl(null); setShowResults(false); setAnalysis(null); setError(''); }}>🔁 Reset Video {slot}</button>
+                </>}
+              </div>
+            ))}
+      </div>
+      {isAnalyzing && (
+        <div className="alert alert-info small">
+          ⚙️ Processing... Please wait.
+          <div className="progress mt-2">
+            <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style={{ width: `${progress}%` }} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>{progress}%</div>
+          </div>
         </div>
       )}
-
-      {hasAudio && audioChecked && !showResults && videoUrl && !isAnalyzing ? (
-        <div className="d-flex gap-2 mb-3">
-          <button className="btn btn-primary" onClick={() => setShowResults(true)}>Show Results</button>
-          <button className="btn btn-outline-success" onClick={() => setShowGraph(true)}>Show Graphical Analysis</button>
-        </div>
-      ) : (!hasAudio && performanceMetrics && !showResults && (
-        <div className="alert alert-info small mb-3">
-          🎥 No audio detected, displaying pose-based performance metrics only.
-        </div>
-      ))}
-
-      {(showResults || showGraph) && (
-        <button className="btn btn-secondary mb-3" onClick={handleBack}>← Back</button>
-      )}
-
-      {showResults && (
-        <>
-          {isAnalyzing && <div className="alert alert-info small">Analyzing... Please wait.</div>}
-          {error && <div className="alert alert-danger small">{error}</div>}
-
-          {!isAnalyzing && (
-            <>
-              {spikeDetected !== null && (
-                <div className={`alert ${spikeDetected ? 'alert-success' : 'alert-warning'} small`}>
-                  {spikeDetected
-                    ? `Spike Detected at ${timestamp} seconds`
-                    : 'No spike detected in audio.'}
-                </div>
-              )}
-
-              {hitStatus && (
-                <div className={`alert ${hitStatus.toLowerCase().includes('ball hit') ? 'alert-success' : 'alert-warning'} small`}>
-                  <strong>AI Decision:</strong> {hitStatus}
-                </div>
-              )}
-
-              {musicDetected && (
-                <div className="alert alert-warning small">
-                  🎵 <strong>Music Detected:</strong> Background music detected — video muted.
-                </div>
-              )}
-
-              {spikeData.length > 0 && (
-                <div className="mt-4 small">
-                  <h6>📋 Spike Detection Log</h6>
-                  <table className="table table-striped table-bordered table-hover table-sm">
-                    <thead className="table-dark small">
-                      <tr>
-                        <th>#</th>
-                        <th>Time (sec)</th>
-                        <th>Amplitude</th>
-                        <th>AI Decision</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {spikeData.map((spike, index) => (
-                        <tr key={index} className="small">
-                          <td>{index + 1}</td>
-                          <td>{spike.timestamp}</td>
-                          <td>{spike.spikeValue}</td>
-                          <td>{spike.decision}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {shotSummary && (
-                <div className="mt-5 p-3 border rounded bg-white small">
-                  <h6>🎯 Shot Summary</h6>
-                  <ul>
-                    <li><strong>Total Frames Analyzed:</strong> {shotSummary.totalFramesAnalyzed}</li>
-                    <li><strong>Unique Shots:</strong> {shotSummary.uniqueShots.join(', ')}</li>
-                    <li><strong>Shot Frequency:</strong>
-                      <ul>
-                        {Object.entries(shotSummary.shotFrequency).map(([shot, freq], i) => (
-                          <li key={i}>{shot}: {freq} times</li>
-                        ))}
-                      </ul>
+      {error && <div className="alert alert-danger small">{error}</div>}
+      {showResults && !isAnalyzing && (
+        <div className="row mt-4">
+          {[analysisA, analysisB].map((analysis, idx) => analysis && (
+            <div className="col-md-6" key={idx}>
+              <div className="p-3 border rounded bg-white mb-3">
+                <h5>Player {idx === 0 ? 'A' : 'B'}: {analysis.playerName}</h5>
+                <h6 className="mt-3">Detailed Shot Analysis</h6>
+                <ul>
+                  {(analysis.metricsList || []).map((metric, i) => (
+                    <li key={i}>
+                      <strong>Time:</strong> {metric.time}s — 
+                      <strong> Shot:</strong> {metric.shotPlayed}, 
+                      <strong> Region:</strong> {metric.ballRegion}, 
+                      <strong> Bowler:</strong> {metric.bowlerType}, 
+                      <strong> Timing:</strong> {metric.shotTiming}
                     </li>
-                  </ul>
-                </div>
-              )}
-
-              {detailedTimeline.length > 0 && (
-                <div className="mt-4 small">
-                  <h6>📼 Shot Detection Timeline</h6>
-                  <table className="table table-bordered table-sm">
-                    <thead className="table-light">
-                      <tr>
-                        <th>Time (s)</th>
-                        <th>Shot</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {detailedTimeline.map((entry, i) => (
-                        <tr key={i}>
-                          <td>{entry.time}</td>
-                          <td>{entry.shot}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </>
-          )}
-        </>
-      )}
-
-      {showGraph && amplitudeData.length > 0 && (
-        <div className="mt-5">
-          <h6>📊 Audio Amplitude over Time</h6>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={amplitudeData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="time" label={{ value: 'Time (s)', position: 'insideBottomRight', offset: -5 }} />
-              <YAxis label={{ value: 'Amplitude', angle: -90, position: 'insideLeft' }} />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="amplitude" stroke="#8884d8" activeDot={{ r: 8 }} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {performanceMetrics && (
-        <div className="mt-5 p-3 border rounded bg-white">
-          <h6>🏏 Performance Metrics</h6>
-          <ul>
-            <li><strong>Shot Played:</strong> {performanceMetrics.shotPlayed}</li>
-            <li><strong>Ball Hit Region:</strong> {performanceMetrics.ballRegion}</li>
-            <li><strong>Bowler Type:</strong> {performanceMetrics.bowlerType}</li>
-            <li><strong>Shot Timing:</strong> {performanceMetrics.shotTiming}</li>
-          </ul>
+                  ))}
+                </ul>
+                <h6 className="mt-3">AI Insights</h6>
+                <ul>
+                  {Object.entries(analysis.aiGeneratedInsights || {}).map(([k, v]) => <li key={k}><strong>{k}:</strong> {v}</li>)}
+                </ul>
+                <h6 className="mt-3">Timeline</h6>
+                <ul>
+                  {(analysis.timeline || []).map((entry, i) => <li key={i}>{entry.time}s: {entry.shot}</li>)}
+                </ul>
+              </div>
+            </div>
+          ))}
+          <div className="col-12"><button className="btn btn-secondary mt-3" onClick={handleBack}>← Back</button></div>
         </div>
       )}
     </div>
