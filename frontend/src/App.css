@@ -1002,3 +1002,106 @@ background-color: #282c34;
   color: #ff4d4d;
   font-weight: bold;
 }
+
+
+
+.snicko-row {
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: 32px;
+}
+
+.snicko-upload,
+.snicko-canvas-wrap {
+  flex: 1 1 360px;
+  min-width: 180px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.snicko-video,
+.snicko-canvas {
+  width: 440px;           /* Portrait width */
+  height: 600px;          /* Portrait height */
+  max-width: 95vw;
+  max-height: 80vh;
+  border-radius: 16px;
+  background: #181818;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 24px #0004;
+  display: block;
+  object-fit: contain;
+}
+
+.snicko-canvas {
+  background: #151515;
+  border: 3px solid #2fa42f;
+  margin-top: 0;
+}
+
+.snicko-log-section {
+  margin: 38px auto 0 auto;
+  max-width: 700px;
+  width: 96%;
+  background: #181818;
+  color: #d9ffd9;
+  border-radius: 12px;
+  box-shadow: 0 3px 14px #0003;
+  padding: 26px 26px 30px 26px;
+  text-align: left;
+}
+
+.snicko-log {
+  margin-top: 0;
+  background: #111;
+  color: #0f0;
+  padding: 14px 16px;
+  height: 240px;
+  overflow-y: auto;
+  border-radius: 8px;
+  font-family: 'Fira Mono', 'Consolas', monospace;
+  font-size: 15px;
+  box-shadow: 0 0 16px #0408;
+}
+
+/* File input tweak for spacing */
+.snicko-upload input[type="file"] {
+  margin-bottom: 18px;
+}
+
+/* Responsive: stack video and canvas on small screens; log stays below */
+@media (max-width: 900px) {
+  .snicko-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  .snicko-upload,
+  .snicko-canvas-wrap {
+    width: 100vw;
+    max-width: 100vw;
+    min-width: 0;
+    align-items: center;
+  }
+  .snicko-video,
+  .snicko-canvas {
+    width: 94vw;
+    min-width: 160px;
+    max-width: 98vw;
+    height: 60vw;
+    max-height: 85vh;
+  }
+  .snicko-log-section {
+    max-width: 99vw;
+    width: 99vw;
+    border-radius: 0 0 16px 16px;
+    padding: 16px 5vw 26px 5vw;
+  }
+}
+
+

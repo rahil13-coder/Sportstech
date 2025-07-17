@@ -1,1048 +1,331 @@
-import React, { useState, useRef, useEffect } from "react";
-import jsPDF from "jspdf";
+import { useRef, useEffect, useState } from "react";
 
-// Dummy stubs for optional helpers
-const compressVideo = async (file) => file;
+// Helper functions/constants
+const waitForGlobal = (prop, timeout = 10000) =>
+  new Promise((resolve, reject) => {
+    let elapsed = 0;
+    const interval = setInterval(() => {
+      if (window[prop]) {
+        clearInterval(interval);
+        resolve();
+      } else if ((elapsed += 100) >= timeout) {
+        clearInterval(interval);
+        reject(new Error(`Global variable ${prop} not loaded`));
+      }
+    }, 100);
+  });
 
-// PDF Report Generator (unchanged)
-const generatePDFReport = async (data) => {
-  const doc = new jsPDF();
-  doc.setFontSize(14);
-  doc.text(`Player: ${data.playerName}`, 10, 10);
-  doc.text(`File: ${data.fileName}`, 10, 20);
-  doc.text(`Time: ${new Date(data.timestamp).toLocaleString()}`, 10, 30);
-
-  doc.setFontSize(12);
-  doc.text(`Shot Played: ${data.metrics.shotPlayed}`, 10, 45);
-  doc.text(`Ball Region: ${data.metrics.ballRegion}`, 10, 55);
-  doc.text(`Bowler Type: ${data.metrics.bowlerType}`, 10, 65);
-  doc.text(`Shot Timing: ${data.metrics.shotTiming}`, 10, 75);
-
-  doc.text("AI Insights:", 10, 90);
-  let y = 100;
-  for (const [key, value] of Object.entries(data.aiGeneratedInsights || {})) {
-    doc.text(
-      `${key}: ${typeof value === "string" ? value : JSON.stringify(value)}`,
-      10,
-      y
-    );
-    y += 10;
-  }
-
-  doc.save(`${data.playerName}_cricket_analysis.pdf`);
+const COLORS = {
+  batter: "blue",
+  bowler: "red",
+  person: "lime",
+  ball: "orange",
+  skeleton: "#FFD700",
+  highlight: "cyan",
+  pitch: "#4b3d28",
+  wrist: "gold",
+  joint: "yellow"
 };
 
-// --- Fallback helpers ---
-const getAngle = (a, b, c) => {
-  const ab = { x: b.x - a.x, y: b.y - a.y };
-  const cb = { x: b.x - c.x, y: b.y - c.y };
-  const dot = ab.x * cb.x + ab.y * cb.y;
-  const magAB = Math.sqrt(ab.x ** 2 + ab.y ** 2);
-  const magCB = Math.sqrt(cb.x ** 2 + cb.y ** 2);
-  const angle = Math.acos(dot / (magAB * magCB));
-  return (angle * 180) / Math.PI;
-};
+const SKELETON_CONNECTIONS = [
+  ["left_shoulder", "right_shoulder"], ["left_shoulder", "left_elbow"],
+  ["left_elbow", "left_wrist"], ["right_shoulder", "right_elbow"],
+  ["right_elbow", "right_wrist"], ["left_shoulder", "left_hip"],
+  ["right_shoulder", "right_hip"], ["left_hip", "right_hip"],
+  ["left_hip", "left_knee"], ["left_knee", "left_ankle"],
+  ["right_hip", "right_knee"], ["right_knee", "right_ankle"]
+];
 
-function extractFeatures(pose) {
-  const requiredPoints = [
-    "leftWrist",
-    "leftElbow",
-    "leftShoulder",
-    "leftHip",
-    "leftKnee",
-    "leftAnkle",
-    "rightWrist",
-    "rightElbow",
-    "rightShoulder",
-    "rightHip",
-    "rightKnee",
-    "rightAnkle",
-    "ankle",
-    "eye",
-    "nose",
-  ];
-  const keypoints = {};
-  for (const point of requiredPoints) {
-    const kp = pose.keypoints.find((k) => k.name === point || k.part === point);
-    if (!kp || kp.score < 0.5) return null;
-    keypoints[point] = kp;
-  }
-
-  const features = [
-    getAngle(keypoints.leftWrist, keypoints.leftElbow, keypoints.leftShoulder),
-    getAngle(
-      keypoints.rightWrist,
-      keypoints.rightElbow,
-      keypoints.rightShoulder
-    ),
-    getAngle(
-      keypoints.leftWrist,
-      keypoints.leftElbow,
-      keypoints.rightShoulder
-    ),
-    getAngle(
-      keypoints.rightWrist,
-      keypoints.rightElbow,
-      keypoints.leftShoulder
-    ),
-    Math.abs(keypoints.leftAnkle.x - keypoints.leftHip.x),
-    Math.abs(keypoints.rightAnkle.x - keypoints.rightHip.x),
-    getAngle(keypoints.leftWrist, keypoints.leftElbow, keypoints.leftHip),
-    getAngle(keypoints.rightWrist, keypoints.rightElbow, keypoints.rightHip),
-    keypoints.nose.x - keypoints.leftShoulder.x,
-    keypoints.nose.x - keypoints.rightShoulder.x,
-    keypoints.eye ? keypoints.eye.x - keypoints.nose.x : 0,
-    keypoints.eye ? keypoints.eye.y - keypoints.nose.y : 0,
-  ];
-  return features;
+// Helper to compute angle between three points
+function getAngle(A, B, C) {
+  const AB = { x: A.x - B.x, y: A.y - B.y };
+  const CB = { x: C.x - B.x, y: C.y - B.y };
+  const dot = AB.x * CB.x + AB.y * CB.y;
+  const magAB = Math.sqrt(AB.x * AB.x + AB.y * AB.y);
+  const magCB = Math.sqrt(CB.x * CB.x + CB.y * CB.y);
+  if (magAB === 0 || magCB === 0) return 0;
+  const angle = Math.acos(Math.min(Math.max(dot / (magAB * magCB), -1), 1));
+  return angle * 180 / Math.PI;
 }
 
-export const inferShotFromPose = (pose) => {
-  const features = extractFeatures(pose);
-  if (!features) return "Low Confidence Pose";
+// Pose quality assessment (basic rules, refine as needed)
+function assessCricketPose(pose, role = "batter") {
+  if (!pose || !pose.keypoints) return "Unknown";
+  const key = name =>
+    pose.keypoints.find(kp => kp.name === name && kp.score > 0.4);
+  const leftShoulder = key("left_shoulder");
+  const leftElbow = key("left_elbow");
+  const leftWrist = key("left_wrist");
+  const rightShoulder = key("right_shoulder");
+  const rightElbow = key("right_elbow");
+  const rightWrist = key("right_wrist");
+  const leftHip = key("left_hip");
+  const leftKnee = key("left_knee");
+  const leftAnkle = key("left_ankle");
+  const rightHip = key("right_hip");
+  const rightKnee = key("right_knee");
+  const rightAnkle = key("right_ankle");
 
-  const [
-    leftArmAngle,
-    rightArmAngle,
-    leftBacklift,
-    rightBacklift,
-    leftFootMove,
-    rightFootMove,
-    leftFollowThrough,
-    rightFollowThrough,
-    noseLeftShoulderX,
-    noseRightShoulderX,
-    eyeNoseX,
-    eyeNoseY,
-  ] = features;
-
-  // === Comprehensive Cricket Shot Classification ===
-
-  // Front foot shots
-  if (
-    leftBacklift > 120 &&
-    leftArmAngle > 140 &&
-    leftFollowThrough > 130 &&
-    leftFootMove > 30
-  )
-    return "Cover Drive";
-  if (
-    rightBacklift > 120 &&
-    rightArmAngle > 140 &&
-    rightFollowThrough > 130 &&
-    rightFootMove > 30
-  )
-    return "Off Drive";
-  if (
-    leftBacklift > 120 &&
-    leftArmAngle > 140 &&
-    leftFollowThrough > 130 &&
-    Math.abs(noseLeftShoulderX) < 30
-  )
-    return "Straight Drive";
-  if (
-    leftBacklift > 120 &&
-    leftArmAngle > 140 &&
-    leftFollowThrough < 100 &&
-    leftFootMove > 40
-  )
-    return "Square Drive";
-
-  // Back foot shots
-  if (leftArmAngle < 100 && leftFollowThrough > 150 && leftFootMove < 20)
-    return "Pull Shot";
-  if (rightArmAngle < 100 && rightFollowThrough > 150 && rightFootMove < 20)
-    return "Hook Shot";
-  if (
-    leftArmAngle > 120 &&
-    leftFollowThrough > 120 &&
-    leftFootMove < 20 &&
-    noseLeftShoulderX > 30
-  )
-    return "Backfoot Punch";
-  if (
-    leftArmAngle > 120 &&
-    leftFollowThrough > 120 &&
-    leftFootMove < 20 &&
-    noseLeftShoulderX < -30
-  )
-    return "Backfoot Drive";
-
-  // Horizontal bat shots
-  if (leftFootMove > 40 && leftFollowThrough < 90) return "Sweep Shot";
-  if (rightFootMove > 40 && rightFollowThrough < 90) return "Reverse Sweep";
-  if (
-    leftArmAngle > 150 &&
-    rightArmAngle > 150 &&
-    leftFollowThrough > 120 &&
-    rightFollowThrough > 120
-  )
-    return "Upper Cut";
-  if (
-    leftArmAngle > 140 &&
-    leftFollowThrough < 100 &&
-    leftFootMove < 20
-  )
-    return "Cut Shot";
-  if (
-    rightArmAngle > 140 &&
-    rightFollowThrough < 100 &&
-    rightFootMove < 20
-  )
-    return "Square Cut";
-
-  // Leg side shots
-  if (
-    leftArmAngle > 100 &&
-    leftFollowThrough > 100 &&
-    leftFootMove > 30 &&
-    leftBacklift < 100
-  )
-    return "Flick Shot";
-  if (
-    leftArmAngle > 100 &&
-    leftFollowThrough > 100 &&
-    leftFootMove > 30 &&
-    leftBacklift < 80
-  )
-    return "Leg Glance";
-
-  // Lofted shots
-  if (leftBacklift > 140 && leftFollowThrough > 150 && eyeNoseY < -10)
-    return "Lofted Drive";
-  if (leftBacklift > 140 && leftFollowThrough > 150 && eyeNoseY > 10)
-    return "Lofted Pull";
-
-  // Defensive shots
-  if (leftBacklift < 80 && leftArmAngle > 120 && leftFollowThrough < 90)
-    return "Defensive Shot";
-  if (leftBacklift < 80 && leftArmAngle < 100 && leftFollowThrough < 90)
-    return "Leave";
-
-  // Unorthodox shots
-  if (rightFootMove > 50 && rightFollowThrough > 100 && leftBacklift > 120)
-    return "Switch Hit";
-  if (
-    leftBacklift > 120 &&
-    leftArmAngle > 140 &&
-    rightFootMove > 50 &&
-    rightFollowThrough > 100
-  )
-    return "Ramp Shot";
-  if (
-    leftArmAngle > 150 &&
-    rightArmAngle > 150 &&
-    leftFollowThrough > 150 &&
-    rightFollowThrough > 150
-  )
-    return "Scoop";
-
-  return "Unknown";
-};
-
-export const inferBallType = (ballTrajectory) => {
-  if (!ballTrajectory || ballTrajectory.length < 3) return "Unknown";
-
-  const getSpeed = (p1, p2) => {
-    const dx = p2.x - p1.x;
-    const dy = p2.y - p1.y;
-    const dt = p2.t - p1.t;
-    return Math.sqrt(dx * dx + dy * dy) / dt;
-  };
-  const preBounceSpeed = getSpeed(ballTrajectory[0], ballTrajectory[1]);
-
-  let bounceIdx = ballTrajectory.findIndex(
-    (p, i, arr) =>
-      i > 1 && arr[i - 2].y > arr[i - 1].y && arr[i - 1].y < p.y
-  );
-  let bounceY = bounceIdx > 0 ? ballTrajectory[bounceIdx].y : null;
-
-  const postBounceSpeed =
-    bounceIdx > 0 && bounceIdx + 1 < ballTrajectory.length
-      ? getSpeed(ballTrajectory[bounceIdx], ballTrajectory[bounceIdx + 1])
-      : null;
-
-  const speedDrop = postBounceSpeed ? preBounceSpeed - postBounceSpeed : 0;
-  const initialY = ballTrajectory[0].y;
-  const peakY = Math.min(...ballTrajectory.map((p) => p.y));
-  const lateralMovement = Math.abs(
-    ballTrajectory[0].x - ballTrajectory[ballTrajectory.length - 1].x
-  );
-
-  if (bounceY && bounceY < 150) return "Short Ball";
-  if (bounceY && bounceY <= 300) return "Good Length";
-  if (!bounceY) return initialY < 100 ? "Yorker" : "Full Toss";
-  if (peakY < 100 && bounceY < 100) return "Bouncer";
-  if (speedDrop > 0.1 * preBounceSpeed) return "Slower Ball";
-  if (lateralMovement > 30) {
-    if (ballTrajectory[0].x > ballTrajectory[ballTrajectory.length - 1].x)
-      return "Inswinger";
-    else return "Outswinger";
+  // Example Batting Pose: left arm (for right-handed) ~90 deg, knees slightly bent
+  if (role === "batter" && leftShoulder && leftElbow && leftWrist && leftHip && leftKnee) {
+    const armAngle = getAngle(leftShoulder, leftElbow, leftWrist);
+    const kneeAngle = getAngle(leftHip, leftKnee, leftAnkle);
+    if (armAngle > 60 && armAngle < 130 && kneeAngle > 120 && kneeAngle < 175)
+      return "Good batting pose";
+    else
+      return "Bad batting pose";
   }
-  return "Unknown";
-};
-
-let knnClassifier = null;
-const getKNN = async () => {
-  if (!knnClassifier && window.knnClassifier) {
-    knnClassifier = window.knnClassifier.create();
+  // Example Bowling Pose: right arm nearly straight, knee not locked
+  if (role === "bowler" && rightShoulder && rightElbow && rightWrist && rightHip && rightKnee) {
+    const armAngle = getAngle(rightShoulder, rightElbow, rightWrist);
+    const kneeAngle = getAngle(rightHip, rightKnee, rightAnkle);
+    if (armAngle < 160 && kneeAngle > 120)
+      return "Good bowling pose";
+    else
+      return "Bad bowling pose";
   }
-  return knnClassifier;
-};
+  return "Cannot determine posture";
+}
 
-const useD3Visualization = (containerRef, playerMovements) => {
+export default function CricketAnalyzer() {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const intervalRef = useRef(null);
+
+  const [log, setLog] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [frameInfo, setFrameInfo] = useState({});
+
+  // Logging
+  const logMessage = msg =>
+    setLog(prev => [...prev.slice(-50), msg]) && console.log(msg);
+
+  // Load models on mount
   useEffect(() => {
-    if (window.d3 && containerRef.current && playerMovements.length > 0) {
-      const d3 = window.d3;
-      const svg = d3.select(containerRef.current)
-        .attr("width", 400)
-        .attr("height", 300);
-      svg.selectAll("*").remove();
-      svg
-        .selectAll("circle")
-        .data(playerMovements)
-        .enter()
-        .append("circle")
-        .attr("cx", (d) => d[0])
-        .attr("cy", (d) => d[1])
-        .attr("r", 3)
-        .attr("fill", "blue");
-    }
-  }, [containerRef, playerMovements]);
-};
-
-const useThreeJSVisualization = (containerRef, pose3DPoints) => {
-  useEffect(() => {
-    if (window.THREE && containerRef.current && pose3DPoints.length > 0) {
-      const THREE = window.THREE;
-      const width = 400,
-        height = 300;
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(
-        75,
-        width / height,
-        0.1,
-        1000
-      );
-      const renderer = new THREE.WebGLRenderer();
-      renderer.setSize(width, height);
-      containerRef.current.innerHTML = "";
-      containerRef.current.appendChild(renderer.domElement);
-      pose3DPoints.forEach(([x, y, z]) => {
-        const geometry = new THREE.SphereGeometry(0.5, 8, 8);
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        const sphere = new THREE.Mesh(geometry, material);
-        sphere.position.set(x, y, z);
-        scene.add(sphere);
-      });
-      camera.position.z = 50;
-      renderer.render(scene, camera);
-    }
-  }, [containerRef, pose3DPoints]);
-};
-
-const runFullAIAnalysis = async (
-  videoRef,
-  setPerformanceMetrics,
-  setShotSummary,
-  setDetailedTimeline,
-  setAiInsights,
-  setShowResults,
-  setError,
-  playerName,
-  fileName,
-  setPlayerMovements,
-  setPose3DPoints
-) => {
-  try {
-    if (!window.tf || !window.poseDetection || !window.cocoSsd) {
-      setError("Required AI libraries are not loaded.");
-      return;
-    }
-    await window.tf.ready();
-    const detector = await window.poseDetection.createDetector(
-      window.poseDetection.SupportedModels.MoveNet,
-      {
-        modelType:
-          window.poseDetection.movenet.modelType.MULTIPOSE_LIGHTNING,
-        enableSmoothing: true,
-      }
-    );
-    const objectModel = await window.cocoSsd.load();
-    const knn = await getKNN();
-    const video = videoRef.current;
-    if (!video) return;
-    const interval = 1000;
-    const frameCount = Math.min(
-      Math.floor((video.duration * 1000) / interval),
-      31
-    );
-    const posesData = [];
-    const eventsTimeline = [];
-    const playerMovements = [];
-    const pose3DPoints = [];
-
-    for (let i = 0; i < frameCount; i++) {
-      video.currentTime = (i * interval) / 1000;
-      await new Promise((resolve) =>
-        video.addEventListener("seeked", resolve, { once: true })
-      );
-
-      const poses = await detector.estimatePoses(video);
-      const objects = await objectModel.detect(video);
-
-      let shot = "Unknown",
-        ballRegion = "Unknown",
-        bowlerType = i * interval < 3000 ? "Pace" : "Spin",
-        shotTiming = "Unknown";
-      let swingDetected = false,
-        ballDetected = false,
-        ballCoords = "";
-      let knnAction = "Unknown";
-
-      if (poses && poses.length > 0) {
-        shot = inferShotFromPose(poses[0]);
-        const keypoints = poses[0].keypoints;
-        const wrist = keypoints.find(
-          (k) => k.name && k.name.includes("wrist")
-        );
-        const elbow = keypoints.find(
-          (k) => k.name && k.name.includes("elbow")
-        );
-        const leftKnee = keypoints.find((k) => k.name === "left_knee");
-        ballRegion =
-          wrist && elbow
-            ? wrist.x < elbow.x - 20
-              ? "Leg Side"
-              : wrist.x > elbow.x + 20
-              ? "Off Side"
-              : "Straight"
-            : "Unknown";
-        shotTiming =
-          wrist && elbow
-            ? wrist.y - elbow.y < -20
-              ? "Early"
-              : wrist.y - elbow.y > 20
-              ? "Late"
-              : "Perfect"
-            : "Unknown";
-        if (
-          wrist &&
-          leftKnee &&
-          wrist.score > 0.5 &&
-          leftKnee.score > 0.5 &&
-          wrist.y < leftKnee.y
-        ) {
-          swingDetected = true;
-        }
-        if (knn && knn.getNumClasses() > 0) {
-          const flatKeypoints = keypoints.map((kp) => [kp.x, kp.y]).flat();
-          const inputTensor = window.tf.tensor(flatKeypoints, [
-            1,
-            flatKeypoints.length,
-          ]);
-          const result = await knn.predictClass(inputTensor);
-          knnAction = result.label;
-          inputTensor.dispose();
-        }
-        if (wrist) playerMovements.push([wrist.x, wrist.y]);
-        const shoulder = keypoints.find(
-          (k) => k.name && k.name.includes("shoulder")
-        );
-        pose3DPoints.push([shoulder?.x || 0, shoulder?.y || 0, 0]);
-      }
-      const ball = objects.find((o) => o.class === "sports ball");
-      if (ball) {
-        ballDetected = true;
-        ballCoords = `(${Math.round(ball.bbox[0])}, ${Math.round(
-          ball.bbox[1]
-        )})`;
-      }
-
-      let events = [];
-      if (swingDetected) events.push("Batsman may have swung the bat");
-      if (ballDetected) events.push(`Ball detected at ${ballCoords}`);
-      if (knnAction && knnAction !== "Unknown")
-        events.push(`KNN Action: ${knnAction}`);
-      if (events.length) {
-        eventsTimeline.push({
-          time: (i * interval / 1000).toFixed(2),
-          event: events.join(", "),
-        });
-      }
-
-      posesData.push({
-        time: (i * interval / 1000).toFixed(2),
-        shot,
-        ballRegion,
-        bowlerType,
-        shotTiming,
-        ballDetected,
-        ballCoords,
-        swingDetected,
-        knnAction,
-        objects: objects.map((obj) => ({
-          class: obj.class,
-          bbox: obj.bbox,
-        })),
-        keypoints: poses[0]?.keypoints || [],
-      });
-    }
-
-    setPlayerMovements([...playerMovements]);
-    setPose3DPoints([...pose3DPoints]);
-
-    if (posesData.length > 0) {
-      const mostFrequentShot = posesData.reduce((acc, pose) => {
-        acc[pose.shot] = (acc[pose.shot] || 0) + 1;
-        return acc;
-      }, {});
-      const sortedShots = Object.entries(mostFrequentShot).sort(
-        (a, b) => b[1] - a[1]
-      );
-      const bestShot =
-        sortedShots.length > 0 ? sortedShots[0][0] : "Unknown";
-      setPerformanceMetrics({
-        shotPlayed: bestShot,
-        ballRegion: posesData[0].ballRegion,
-        bowlerType: posesData[0].bowlerType,
-        shotTiming: posesData[0].shotTiming,
-      });
-      setShotSummary({
-        totalFramesAnalyzed: frameCount,
-        uniqueShots: [...new Set(posesData.map((p) => p.shot))],
-        shotFrequency: Object.fromEntries(sortedShots),
-      });
-      setDetailedTimeline(
-        posesData.map(
-          ({
-            time,
-            shot,
-            ballDetected,
-            swingDetected,
-            knnAction,
-            objects,
-            ballCoords,
-          }) => ({
-            time,
-            shot,
-            ballDetected,
-            swingDetected,
-            knnAction,
-            objects,
-            ballCoords,
-          })
-        )
-      );
-      setAiInsights({
-        ...((eventsTimeline.length > 0) && { eventsTimeline }),
-        allObjects: posesData.flatMap((p) => p.objects),
-      });
-      setShowResults(true);
-    }
-  } catch (err) {
-    console.error("AI analysis failed:", err);
-    setError("AI video analysis failed.");
-  }
-};
-
-function SnickoMeter() {
-  // Core state for Player A
-  const [performanceMetrics, setPerformanceMetrics] = useState(null);
-  const [detailedTimeline, setDetailedTimeline] = useState([]);
-  const [shotSummary, setShotSummary] = useState(null);
-  const [aiInsights, setAiInsights] = useState(null);
-  const [bowlerResult, setBowlerResult] = useState(null);
-
-  // Core state for Player B
-  const [performanceMetricsB, setPerformanceMetricsB] = useState(null);
-  const [detailedTimelineB, setDetailedTimelineB] = useState([]);
-  const [shotSummaryB, setShotSummaryB] = useState(null);
-  const [aiInsightsB, setAiInsightsB] = useState(null);
-  const [bowlerResultB, setBowlerResultB] = useState(null);
-
-  // UI state
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [error, setError] = useState("");
-  const [progress, setProgress] = useState(0);
-  const [activePlayer, setActivePlayer] = useState("A"); // 'A' or 'B'
-
-  // Player info
-  const [playerNameA, setPlayerNameA] = useState("");
-  const [playerNameB, setPlayerNameB] = useState("");
-  const [videoUrlA, setVideoUrlA] = useState(null);
-  const [videoUrlB, setVideoUrlB] = useState(null);
-
-  // Video refs
-  const videoRefA = useRef(null);
-  const videoRefB = useRef(null);
-
-  // Visualization state
-  const [playerMovements, setPlayerMovements] = useState([]);
-  const [pose3DPoints, setPose3DPoints] = useState([]);
-  const d3Container = useRef(null);
-  const threeContainer = useRef(null);
-
-  useD3Visualization(d3Container, playerMovements);
-  useThreeJSVisualization(threeContainer, pose3DPoints);
-
-  const handleVideoUpload = async (e, videoSlot = "A") => {
-    let file = e.target.files[0];
-    if (!file) return;
-
-    const playerName = videoSlot === "A" ? playerNameA : playerNameB;
-    if (!playerName || playerName.trim() === "") {
-      setError(`Please enter a player name for Video ${videoSlot}.`);
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setError("");
-    setShowResults(false);
-    setProgress(10);
-
-    // Reset results for the uploading player
-    if (videoSlot === "A") {
-      setPerformanceMetrics(null);
-      setDetailedTimeline([]);
-      setShotSummary(null);
-      setAiInsights(null);
-      setBowlerResult(null);
-    } else {
-      setPerformanceMetricsB(null);
-      setDetailedTimelineB([]);
-      setShotSummaryB(null);
-      setAiInsightsB(null);
-      setBowlerResultB(null);
-    }
-
-    try {
-      file = await compressVideo(file);
-    } catch (err) {
-      console.warn("Compression failed:", err);
-    }
-
-    const videoElement = document.createElement("video");
-    videoElement.preload = "metadata";
-
-    const validateDuration = () =>
-      new Promise((resolve, reject) => {
-        videoElement.onloadedmetadata = () => {
-          window.URL.revokeObjectURL(videoElement.src);
-          if (videoElement.duration < 4) {
-    reject('Please upload a video of at least 4 seconds.');
-  } else if (videoElement.duration > 60) {
-    reject('Please upload a video less than 60 seconds.');
-  } else {
-    resolve();
-  }
-};
-        videoElement.onerror = () => reject("Invalid video file.");
-        videoElement.src = URL.createObjectURL(file);
-      });
-
-    try {
-      await validateDuration();
-    } catch (durationError) {
-      setIsAnalyzing(false);
-      setError(durationError);
-      return;
-    }
-
-    const previewUrl = URL.createObjectURL(file);
-
-    setProgress(50);
-
-    setTimeout(async () => {
+    const loadModels = async () => {
       try {
-        if (videoSlot === "A") {
-          setVideoUrlA(previewUrl);
-          await runFullAIAnalysis(
-            videoRefA,
-            setPerformanceMetrics,
-            setShotSummary,
-            setDetailedTimeline,
-            setAiInsights,
-            setShowResults,
-            setError,
-            playerName,
-            file.name,
-            setPlayerMovements,
-            setPose3DPoints
-          );
-        } else {
-          setVideoUrlB(previewUrl);
-          await runFullAIAnalysis(
-            videoRefB,
-            setPerformanceMetricsB,
-            setShotSummaryB,
-            setDetailedTimelineB,
-            setAiInsightsB,
-            setShowResults,
-            setError,
-            playerName,
-            file.name,
-            setPlayerMovements,
-            setPose3DPoints
-          );
-        }
-        setProgress(100);
+        await Promise.all([
+          waitForGlobal("tf"),
+          waitForGlobal("poseDetection"),
+          waitForGlobal("cocoSsd"),
+          waitForGlobal("cv")
+        ]);
+        logMessage("All models and libraries loaded.");
       } catch (err) {
-        setError("AI video analysis failed.");
-      } finally {
-        setIsAnalyzing(false);
-        setProgress(0);
+        logMessage(`Error loading libraries: ${err.message}`);
       }
-    }, 1000);
-  };
+    };
+    loadModels();
+  }, []);
 
-  const handleBack = () => {
-    setShowResults(false);
-    setBowlerResult(null);
-    setBowlerResultB(null);
-  };
-
-  // Bowler Result Handler
-  const handleBowlerResult = (player) => {
-    if (player === "A") {
-      setActivePlayer("A");
-      setShowResults(true);
-      // Extract ball trajectory from detailedTimeline
-      const ballTrajectory = detailedTimeline
-        .filter((p) => p.ballDetected && p.ballCoords)
-        .map((p) => {
-          const coords = p.ballCoords.match(/\d+/g);
-          return {
-            x: Number(coords[0]),
-            y: Number(coords[1]),
-            t: Number(p.time),
-          };
-        });
-      const ballType = inferBallType(ballTrajectory);
-      setBowlerResult(ballType);
-      setAiInsights((prev) => ({ ...prev, ballType }));
-    } else {
-      setActivePlayer("B");
-      setShowResults(true);
-      const ballTrajectory = detailedTimelineB
-        .filter((p) => p.ballDetected && p.ballCoords)
-        .map((p) => {
-          const coords = p.ballCoords.match(/\d+/g);
-          return {
-            x: Number(coords[0]),
-            y: Number(coords[1]),
-            t: Number(p.time),
-          };
-        });
-      const ballType = inferBallType(ballTrajectory);
-      setBowlerResultB(ballType);
-      setAiInsightsB((prev) => ({ ...prev, ballType }));
+  // Main video analysis loop
+  const processVideo = async video => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    let objectModel, poseDetector;
+    try {
+      objectModel = await window.cocoSsd.load();
+      poseDetector = await window.poseDetection.createDetector(
+        window.poseDetection.SupportedModels.MoveNet
+      );
+    } catch (err) {
+      logMessage(`Error loading TF models: ${err.message}`);
+      return;
     }
+
+    intervalRef.current = setInterval(async () => {
+      if (video.paused || video.ended) {
+        clearInterval(intervalRef.current);
+        setIsProcessing(false);
+        return;
+      }
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Object detection
+      let predictions = [];
+      try {
+        predictions = await objectModel.detect(canvas);
+      } catch (err) {
+        logMessage("Object Detection Error: " + err.message);
+      }
+
+      const ballObjs = predictions.filter(o => o.class === "sports ball");
+      const personObjs = predictions.filter(o => o.class === "person");
+
+      // Draw regions of interest
+      predictions.forEach(obj => {
+        ctx.strokeStyle = COLORS.person;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(...obj.bbox);
+        ctx.font = "15px Arial";
+        ctx.fillStyle = COLORS.person;
+        ctx.fillText(obj.class, obj.bbox[0], obj.bbox[1] - 5);
+      });
+      // Ball highlight
+      if (ballObjs.length) {
+        const [x, y, w, h] = ballObjs[0].bbox;
+        ctx.strokeStyle = COLORS.ball;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, w, h);
+        ctx.fillStyle = COLORS.ball;
+        ctx.fillText("BALL", x, y - 6);
+      }
+
+      // Role assignment by leftmost/rightmost
+      let batter, bowler;
+      if (personObjs.length >= 2) {
+        const ordered = [...personObjs].sort((a, b) => a.bbox[0] - b.bbox[0]);
+        batter = ordered[0];
+        bowler = ordered[ordered.length - 1];
+        ctx.strokeStyle = COLORS.batter;
+        ctx.strokeRect(...batter.bbox);
+        ctx.font = "16px Arial";
+        ctx.fillStyle = COLORS.batter;
+        ctx.fillText("BATTER", batter.bbox[0], batter.bbox[1] - 18);
+        ctx.strokeStyle = COLORS.bowler;
+        ctx.strokeRect(...bowler.bbox);
+        ctx.fillStyle = COLORS.bowler;
+        ctx.fillText("BOWLER", bowler.bbox[0], bowler.bbox[1] - 18);
+      }
+
+      // Pose estimation and skeleton feedback
+      let poses = [];
+      try {
+        poses = await poseDetector.estimatePoses(video);
+      } catch (err) {
+        logMessage("Pose Detection Error: " + err.message);
+      }
+
+      poses.forEach((pose, idx) => {
+        // Draw skeleton lines & dots
+        SKELETON_CONNECTIONS.forEach(([a, b]) => {
+          const kpA = pose.keypoints.find(kp => kp.name === a && kp.score > 0.4);
+          const kpB = pose.keypoints.find(kp => kp.name === b && kp.score > 0.4);
+          if (kpA && kpB) {
+            ctx.beginPath();
+            ctx.moveTo(kpA.x, kpA.y);
+            ctx.lineTo(kpB.x, kpB.y);
+            ctx.strokeStyle = COLORS.skeleton;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+        });
+        pose.keypoints.forEach(kp => {
+          if (kp.score > 0.4) {
+            ctx.beginPath();
+            ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = COLORS.joint;
+            ctx.fill();
+          }
+        });
+
+        // Role association by bbox proximity
+        let role = "unknown";
+        if (personObjs.length >= 2) {
+          const center = pose.keypoints[0];
+          // finds distance to leftmost/rightmost bbox
+          const dist = obj =>
+            Math.abs(center.x - (obj.bbox[0] + obj.bbox[2] / 2)) +
+            Math.abs(center.y - (obj.bbox[1] + obj.bbox[3] / 2));
+          role = dist(batter) < dist(bowler) ? "batter" : "bowler";
+        }
+
+        // Real-time AI/Rule-based pose quality
+        const poseQuality = assessCricketPose(pose, role);
+        ctx.font = "bold 14px Arial";
+        ctx.fillStyle =
+          poseQuality && poseQuality.includes("Good") ? "green" :
+          poseQuality && poseQuality.includes("Bad") ? "red" : "gray";
+        const cntr = pose.keypoints[0] || { x: 40, y: 40 };
+        ctx.fillText(poseQuality, cntr.x, cntr.y - 50);
+      });
+
+      // Aggregation for further analysis or visualization
+      setFrameInfo(prev => ({
+        ...prev,
+        [`frame_${video.currentTime.toFixed(2)}`]: {
+          poses,
+          ballObjs,
+          personObjs
+        }
+      }));
+
+      if (poses.length) logMessage(`Detected ${poses.length} human poses at ${video.currentTime.toFixed(2)}s`);
+      if (!ballObjs.length) logMessage(`No ball detected at ${video.currentTime.toFixed(2)}s`);
+    }, 100);
   };
 
-  // Render
+  // Upload/reset handler
+  const handleVideoUpload = async event => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setIsProcessing(false);
+    setLog([]);
+    setFrameInfo({});
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext("2d");
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    }
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.removeAttribute("src");
+      videoRef.current.load();
+    }
+    const file = event.target.files[0];
+    if (!file) return;
+    const video = videoRef.current;
+    video.src = URL.createObjectURL(file);
+    video.onloadedmetadata = async () => {
+      await video.play();
+      if (!isProcessing) {
+        setIsProcessing(true);
+        processVideo(video);
+      }
+    };
+  };
+
   return (
-    <div
-      className="card p-4 bg-light mb-4"
-      style={{ width: "95%", margin: "0 auto" }}
-    >
-      <h4>🎙️ Snicko Meter Technology (Enhanced)</h4>
-      <p>
-        Upload cricket videos for Player A and/or Player B. Detects bat-ball
-        contact & generates real-time metrics using AI Pose + Object Detection
-        in-browser, with KNN, OpenCV, speech commands, and visualizations.
-      </p>
-
-      <div className="row mb-4">
-        <div className="col-md-6">
-          <label>
-            <strong>Player A Name:</strong>
-            <input
-              type="text"
-              className="form-control mb-2"
-              value={playerNameA}
-              onChange={(e) => setPlayerNameA(e.target.value)}
-              placeholder="Enter Player A Name"
-            />
-          </label>
+    <div>
+      <h2>Cricket Analyzer (Biomechanics & Pose Quality Checker)</h2>
+      <div className="snicko-row" style={{ display: "flex" }}>
+        <div className="snicko-upload">
           <input
             type="file"
             accept="video/*"
-            className="form-control mb-3"
-            onChange={(e) => handleVideoUpload(e, "A")}
+            onChange={handleVideoUpload}
+            style={{ marginBottom: 12 }}
           />
-          {videoUrlA && (
-            <>
-              <video
-                ref={videoRefA}
-                src={videoUrlA}
-                controls
-                width="100%"
-                className="mb-2"
-              />
-              <button
-                className="btn btn-danger btn-sm mb-2"
-                onClick={() => {
-                  setVideoUrlA(null);
-                  setShowResults(false);
-                  setPerformanceMetrics(null);
-                  setDetailedTimeline([]);
-                  setShotSummary(null);
-                  setAiInsights(null);
-                  setBowlerResult(null);
-                  setError("");
-                }}
-              >
-                🔁 Reset Video A
-              </button>
-            </>
-          )}
+          <video
+            className="snicko-video"
+            ref={videoRef}
+            controls
+            style={{ marginBottom: 12, maxWidth: 400 }}
+          />
         </div>
-        <div className="col-md-6">
-          <label>
-            <strong>Player B Name:</strong>
-            <input
-              type="text"
-              className="form-control mb-2"
-              value={playerNameB}
-              onChange={(e) => setPlayerNameB(e.target.value)}
-              placeholder="Enter Player B Name"
-            />
-          </label>
-          <input
-            type="file"
-            accept="video/*"
-            className="form-control mb-3"
-            onChange={(e) => handleVideoUpload(e, "B")}
+        <div className="snicko-canvas-wrap">
+          <canvas
+            className="snicko-canvas"
+            ref={canvasRef}
+            width={640}
+            height={480}
           />
-          {videoUrlB && (
-            <>
-              <video
-                ref={videoRefB}
-                src={videoUrlB}
-                controls
-                width="100%"
-                className="mb-2"
-              />
-              <button
-                className="btn btn-danger btn-sm mb-2"
-                onClick={() => {
-                  setVideoUrlB(null);
-                  setShowResults(false);
-                  setPerformanceMetricsB(null);
-                  setDetailedTimelineB([]);
-                  setShotSummaryB(null);
-                  setAiInsightsB(null);
-                  setBowlerResultB(null);
-                  setError("");
-                }}
-              >
-                🔁 Reset Video B
-              </button>
-            </>
-          )}
         </div>
       </div>
-      <div className="mb-3">
-        <button
-          className="btn btn-success mr-2"
-          onClick={() => {
-            setActivePlayer("A");
-            setShowResults(true);
-          }}
+      <div className="snicko-log-section">
+        <h3 style={{ marginBottom: 12 }}>Result Log</h3>
+        <div
+          className="snicko-log"
+          style={{ minHeight: 120, maxHeight: 320, overflowY: "auto" }}
         >
-          Get Batter Result (A)
-        </button>
-        <button
-          className="btn btn-success mr-2"
-          onClick={() => {
-            setActivePlayer("B");
-            setShowResults(true);
-          }}
-        >
-          Get Batter Result (B)
-        </button>
-        <button
-          className="btn btn-info mr-2"
-          onClick={() => handleBowlerResult("A")}
-        >
-          Get Bowler Result (A)
-        </button>
-        <button
-          className="btn btn-info"
-          onClick={() => handleBowlerResult("B")}
-        >
-          Get Bowler Result (B)
-        </button>
+          {log.map((msg, idx) => (
+            <div key={idx}>{msg}</div>
+          ))}
+        </div>
       </div>
-
-      {isAnalyzing && (
-        <div className="alert alert-info small">
-          ⚙️ Processing... Please wait.
-          <div className="progress mt-2">
-            <div
-              className="progress-bar progress-bar-striped progress-bar-animated"
-              role="progressbar"
-              style={{ width: `${progress}%` }}
-              aria-valuenow={progress}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              {progress}%
-            </div>
-          </div>
-        </div>
-      )}
-      {error && <div className="alert alert-danger small">{error}</div>}
-
-      {showResults && !isAnalyzing && (
-        <div className="row mt-4">
-          <div className="col-md-6">
-            <div className="p-3 border rounded bg-white mb-3">
-              <h5>
-                Player {activePlayer}:{" "}
-                {activePlayer === "A" ? playerNameA : playerNameB}
-              </h5>
-              <ul>
-                <li>
-                  <strong>Shot Played:</strong>{" "}
-                  {activePlayer === "A"
-                    ? performanceMetrics?.shotPlayed
-                    : performanceMetricsB?.shotPlayed}
-                </li>
-                <li>
-                  <strong>Ball Region:</strong>{" "}
-                  {activePlayer === "A"
-                    ? performanceMetrics?.ballRegion
-                    : performanceMetricsB?.ballRegion}
-                </li>
-                <li>
-                  <strong>Bowler Type:</strong>{" "}
-                  {activePlayer === "A"
-                    ? performanceMetrics?.bowlerType
-                    : performanceMetricsB?.bowlerType}
-                </li>
-                <li>
-                  <strong>Shot Timing:</strong>{" "}
-                  {activePlayer === "A"
-                    ? performanceMetrics?.shotTiming
-                    : performanceMetricsB?.shotTiming}
-                </li>
-                {(activePlayer === "A" ? bowlerResult : bowlerResultB) && (
-                  <li>
-                    <strong>Bowler Result (Ball Type):</strong>{" "}
-                    {activePlayer === "A" ? bowlerResult : bowlerResultB}
-                  </li>
-                )}
-              </ul>
-              <h6 className="mt-3">AI Insights</h6>
-              <ul>
-                {(activePlayer === "A"
-                  ? aiInsights?.eventsTimeline
-                  : aiInsightsB?.eventsTimeline) &&
-                  (activePlayer === "A"
-                    ? aiInsights.eventsTimeline
-                    : aiInsightsB.eventsTimeline
-                  ).map((evt, i) => (
-                    <li key={i}>
-                      <strong>{evt.time}s:</strong> {evt.event}
-                    </li>
-                  ))}
-                {(activePlayer === "A"
-                  ? aiInsights?.allObjects
-                  : aiInsightsB?.allObjects) && (
-                  <li>
-                    <strong>All Detected Objects:</strong>
-                    <ul>
-                      {(activePlayer === "A"
-                        ? aiInsights.allObjects
-                        : aiInsightsB.allObjects
-                      ).map((obj, i) => (
-                        <li key={i}>
-                          {obj.class} (bbox:{" "}
-                          {obj.bbox.map((n) => Math.round(n)).join(", ")})
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                )}
-                {(activePlayer === "A"
-                  ? aiInsights?.ballType
-                  : aiInsightsB?.ballType) && (
-                  <li>
-                    <strong>Ball Type:</strong>{" "}
-                    {activePlayer === "A"
-                      ? aiInsights.ballType
-                      : aiInsightsB.ballType}
-                  </li>
-                )}
-              </ul>
-              <h6 className="mt-3">Timeline</h6>
-              <ul>
-                {(activePlayer === "A"
-                  ? detailedTimeline
-                  : detailedTimelineB
-                ).map((entry, i) => (
-                  <li key={i}>
-                    {entry.time}s: {entry.shot}{" "}
-                    {entry.knnAction && entry.knnAction !== "Unknown"
-                      ? ` | KNN: ${entry.knnAction}`
-                      : ""}{" "}
-                    {entry.ballDetected ? " | Ball Detected" : ""}{" "}
-                    {entry.swingDetected ? " | Swing" : ""}
-                  </li>
-                ))}
-              </ul>
-              <button
-                className="btn btn-primary mt-2"
-                onClick={() =>
-                  generatePDFReport({
-                    playerName:
-                      activePlayer === "A" ? playerNameA : playerNameB,
-                    fileName:
-                      activePlayer === "A" ? videoUrlA : videoUrlB,
-                    metrics:
-                      activePlayer === "A"
-                        ? performanceMetrics
-                        : performanceMetricsB,
-                    aiGeneratedInsights:
-                      activePlayer === "A" ? aiInsights : aiInsightsB,
-                    timeline:
-                      activePlayer === "A"
-                        ? detailedTimeline
-                        : detailedTimelineB,
-                    summary:
-                      activePlayer === "A" ? shotSummary : shotSummaryB,
-                    timestamp: new Date().toISOString(),
-                  })
-                }
-              >
-                Download PDF Report
-              </button>
-            </div>
-          </div>
-          <div className="col-md-6">
-            <h6>Player Movement (d3.js)</h6>
-            <svg ref={d3Container}></svg>
-            <h6 className="mt-3">Pose 3D (three.js)</h6>
-            <div
-              ref={threeContainer}
-              style={{ width: 400, height: 300 }}
-            ></div>
-          </div>
-          <div className="col-12">
-            <button
-              className="btn btn-secondary mt-3"
-              onClick={handleBack}
-            >
-              ← Back
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
-
-export default SnickoMeter;
