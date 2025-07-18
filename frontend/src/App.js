@@ -13,7 +13,8 @@ function App() {
       <div
         className="App"
         style={{
-          backgroundImage: `url(${process.env.PUBLIC_URL}/pexels-pixelcop-2799556.jpg)`,
+          //backgroundImage: `url(${process.env.PUBLIC_URL}/pexels-pixelcop-2799556.jpg)`,
+          backgroundImage: `url(${process.env.PUBLIC_URL}/Cric-stadium.jpg)`,
           backgroundSize: 'cover',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',

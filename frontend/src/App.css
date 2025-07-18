@@ -1017,8 +1017,8 @@ background-color: #282c34;
 .snicko-upload,
 .snicko-canvas-wrap {
   flex: 1 1 360px;
-  min-width: 180px;
-  max-width: 400px;
+  min-width: 280px;
+  max-width: 300px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1026,8 +1026,8 @@ background-color: #282c34;
 
 .snicko-video,
 .snicko-canvas {
-  width: 440px;           /* Portrait width */
-  height: 600px;          /* Portrait height */
+  width: 800px;           /* Portrait width */
+  height: 500px;          /* Portrait height */
   max-width: 95vw;
   max-height: 80vh;
   border-radius: 16px;
@@ -1104,4 +1104,59 @@ background-color: #282c34;
   }
 }
 
+/* Hide default file input, show styled label as clickable */
+.custom-file-upload {
+  display: inline-block;
+  padding: 7px 16px;
+  cursor: pointer;
+  background-color: #222; /* subtle background */
+  color: #f8f7f4;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-right: 10px;
+  border: 1px solid #555;
+  font-size: 15px;
+  transition: background 0.1s;
+}
+.custom-file-upload:hover {
+  background: #282828;
+}
 
+/* File name appearance is neutral—not highlighted, not blue, not clickable */
+.video-filename {
+  display: inline-block;
+  margin-left: 7px;
+  font-size: 15px;
+  color: #edcd8d;      /* soft tan/gold—matches cricket UI, not attention-red */
+  background: transparent;
+  border: none;
+  text-decoration: none;
+  padding: 0 3px;
+  font-family: 'Fira Mono', monospace;
+  vertical-align: middle;
+}
+
+/* Light orange Replay Analyzer button look */
+.replay-analyzer-btn {
+  margin-left: 16px;
+  padding: 7px 20px;
+  background-color: #ffa940; /* light orange */
+  color: #2d1c00;
+  border: none;
+  border-radius: 7px;
+  box-shadow: 0 2px 8px #0002;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.replay-analyzer-btn:disabled {
+  background: #ffcf8a;
+  color: #7c5730;
+  cursor: not-allowed;
+}
+.replay-analyzer-btn:hover:not(:disabled) {
+  background: #ffc166;
+}
+
+/* Fix stacking on smaller screens as well if needed, relying on your existing @media */
