@@ -1160,3 +1160,8 @@ background-color: #282c34;
 }
 
 /* Fix stacking on smaller screens as well if needed, relying on your existing @media */
+.btn.btn-secondary {
+  background-color: rgb(0, 170, 255) !important;
+  border-color: blue !important;
+  color: rgb(0, 0, 0);
+}

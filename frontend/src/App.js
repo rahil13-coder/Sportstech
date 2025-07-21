@@ -7,6 +7,17 @@ import HomePage from './pages/HomePage';
 import Cricket3 from './pages/cricket3'; // ✅ Correct
 
 
+// ✅ Global error handler
+window.onerror = function (message, source, lineno, colno, error) {
+  console.error("🌐 Global Error Caught:", {
+    message,
+    source,
+    lineno,
+    colno,
+    error,
+  });
+};
+
 function App() {
   return (
     <Router>
