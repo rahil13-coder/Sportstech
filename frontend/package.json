@@ -39,8 +39,11 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
-  },
+    ],
+    "globals": {
+    "cv": "readonly"
+  }
+},
   "browserslist": {
     "production": [
       ">0.2%",
