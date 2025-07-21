@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import SnickoMeter1 from "./SnickoMeter1"; // Adjust path as needed
 
 // ========== Helper Functions ===========
 const waitForGlobal = (prop, timeout = 10000) =>
@@ -74,7 +75,8 @@ function getRoleConfidence(pose, batter, bowler) {
   if (!batter || !bowler || !(pose.keypoints && pose.keypoints.length)) return null;
   const cntr = pose.keypoints[0];
   const dist = obj =>
-    Math.abs(cntr.x - (obj.bbox[0] + obj.bbox[2] / 2)) + Math.abs(cntr.y - (obj.bbox[1] + obj.bbox[3] / 2));
+    Math.abs(cntr.x - (obj.bbox[0] + obj.bbox[2] / 2)) +
+    Math.abs(cntr.y - (obj.bbox[1] + obj.bbox[3] / 2));
   const dBatter = dist(batter);
   const dBowler = dist(bowler);
   const sum = dBatter + dBowler || 1e-3;
@@ -83,7 +85,6 @@ function getRoleConfidence(pose, batter, bowler) {
     bowler: 1 - dBowler / sum
   };
 }
-
 function assessCricketPose(pose, role = "batter", options = {}) {
   if (!pose || !pose.keypoints) return { status: "Unknown", role };
   const key = name =>
@@ -186,7 +187,6 @@ function applyXRayEffect(canvas) {
   window.cv.cvtColor(src, gray, window.cv.COLOR_RGBA2GRAY, 0);
   // Invert grayscale image
   window.cv.bitwise_not(gray, inv);
-  // Optionally, enhance contrast here...
   // Convert back to rgba
   window.cv.cvtColor(inv, src, window.cv.COLOR_GRAY2RGBA, 0);
   const xrayImage = new ImageData(
@@ -254,7 +254,7 @@ export default function CricketAnalyzer() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // ----- X-Ray effect if enabled -----
+      // X-Ray mode visual effect
       if (xrayEnabled) {
         applyXRayEffect(canvas);
       }
@@ -262,9 +262,10 @@ export default function CricketAnalyzer() {
       let predictions = [];
       try {
         predictions = await objectModel.detect(canvas);
-      } catch (err) { }
+      } catch (err) {}
       const ballObjs = predictions.filter(o => o.class === "sports ball");
       const personObjs = predictions.filter(o => o.class === "person");
+
       predictions.forEach(obj => {
         ctx.strokeStyle = COLORS.person;
         ctx.lineWidth = 2;
@@ -281,6 +282,7 @@ export default function CricketAnalyzer() {
         ctx.fillStyle = COLORS.ball;
         ctx.fillText("BALL", x, y - 6);
       }
+
       let batter, bowler;
       if (personObjs.length >= 2) {
         const ordered = [...personObjs].sort(
@@ -301,7 +303,7 @@ export default function CricketAnalyzer() {
       let poses = [];
       try {
         poses = await poseDetector.estimatePoses(video);
-      } catch (err) { }
+      } catch (err) {}
       poses.forEach(pose => {
         SKELETON_CONNECTIONS.forEach(([a, b]) => {
           const kpA = pose.keypoints.find(
@@ -359,7 +361,7 @@ export default function CricketAnalyzer() {
           personObjs
         }
       }));
-    }, 100); // every 100ms
+    }, 100);
   };
 
   // --- UPDATED File Upload Handler for filename ---
@@ -437,7 +439,6 @@ export default function CricketAnalyzer() {
     }
   };
 
-  // Add effect dependencies for xrayEnabled as well!
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -464,7 +465,6 @@ export default function CricketAnalyzer() {
       video.removeEventListener("play", handlePlay);
       video.removeEventListener("pause", handlePause);
     };
-    // eslint-disable-next-line
   }, [videoLoaded, models.objectModel, models.poseDetector, xrayEnabled]);
 
   return (
@@ -484,29 +484,29 @@ export default function CricketAnalyzer() {
           <span className="video-filename" style={{ marginLeft: 8 }}>{filename}</span>
         )}
         {videoLoaded && (
-          <button
-            className="replay-analyzer-btn"
-            onClick={handleReplayAnalyzer}
-            disabled={!videoLoaded}
-            style={{ marginLeft: 12 }}
-          >
-            Replay Analyzer
-          </button>
-        )}
-        {videoLoaded && (
-          <button
-            style={{
-              marginLeft: 12,
-              background: xrayEnabled ? "#333" : "#fff",
-              color: xrayEnabled ? "#fff" : "#000",
-              border: "1px solid #aaa",
-              borderRadius: 4,
-              padding: "6px 12px"
-            }}
-            onClick={() => setXrayEnabled(x => !x)}
-          >
-            {xrayEnabled ? "Disable" : "Enable"} X-Ray View
-          </button>
+          <>
+            <button
+              className="replay-analyzer-btn"
+              onClick={handleReplayAnalyzer}
+              disabled={!videoLoaded}
+              style={{ marginLeft: 12 }}
+            >
+              Replay Analyzer
+            </button>
+            <button
+              style={{
+                marginLeft: 12,
+                background: xrayEnabled ? "#333" : "#fff",
+                color: xrayEnabled ? "#fff" : "#000",
+                border: "1px solid #aaa",
+                borderRadius: 4,
+                padding: "6px 12px"
+              }}
+              onClick={() => setXrayEnabled(x => !x)}
+            >
+              {xrayEnabled ? "Disable" : "Enable"} X-Ray View
+            </button>
+          </>
         )}
       </div>
       <div

@@ -6,6 +6,7 @@ import HawkEyeUploader from '../components/HawkEyeUploader';
 import CricketTechnologies from './CricketTechnologies'; 
 import FootballTechnologies from './FootballTechnologies';
 import TennisTechnologies from './TennisTechnologies';
+import SnickoMeter1 from './SnickoMeter1';
 
 
 
@@ -19,6 +20,7 @@ function HomePage() {
     const [hawkEyeError, setHawkEyeError] = useState('');
     const [decisionData, setDecisionData] = useState(null);
     const [snickoActive, setSnickoActive] = useState(false);
+    const [ballTrackingActive, setBallTrackingActive] = useState(false); // ✅ new state
 
 
     const baseURL = process.env.REACT_APP_API_BASE_URL;
@@ -100,14 +102,14 @@ function HomePage() {
             <h1 className="hero-title">Sports Technology Explorer</h1>
 
             <section className="hero-title1">
-                <h2>HAWK EYE</h2>
+                <h2>Cricket Informatica</h2>
                 <button className="btn btn-warning mb-3" onClick={() => setHawkEyeActive(!hawkEyeActive)}>
-                    {hawkEyeActive ? "Close Hawk Eye" : "Activate Hawk Eye"}
+                    {hawkEyeActive ? "Close Cricket Analytics" : "Cricket Analytics"}
                 </button>
 
                 {hawkEyeActive && (
                     <div className="card p-4 bg-dark text-white">
-                        <h4>Upload a video to run Hawk Eye analysis</h4>
+                        <h4>Upload a video to run Cricket Informatic analysis</h4>
                         <input type="file" accept="video/*" className="form-control my-3" onChange={handleFileUpload} />
 
                         {processing && (
@@ -145,10 +147,65 @@ function HomePage() {
             
             {/* Technology Sections */}
             <section className="mb-5">
-    <h2>SNICKO METER</h2>
-    <button className="btn btn-primary mb-3" onClick={() => setSnickoActive(!snickoActive)}>
-        {snickoActive ? "Close Snicko Meter" : "Activate Snicko Meter"}
+    <h2>Cricket Video Analytics</h2>
+
+<button
+  className="btn btn-primary mb-3 me-2"
+  onClick={() => setSnickoActive(!snickoActive)}
+>
+  {snickoActive ? "Close Cricket Video Analyzer" : "Cricket Video Analyzer"}
+</button>
+
+<button
+  className="btn btn-secondary mb-3"
+  onClick={() => setBallTrackingActive(!ballTrackingActive)}
+>
+  {ballTrackingActive ? "Close Ball Tracking" : "Ball Tracking"}
+</button>
+
+{ballTrackingActive && (
+  <div
+    className="ball-tracking-wrapper"
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: '#000000ee',
+      zIndex: 999,
+      overflowY: 'auto',
+      padding: '20px',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
+  >
+    <button
+      onClick={() => setBallTrackingActive(false)}
+      style={{
+        position: 'absolute',
+        top: '20px',
+        left: '20px',
+        padding: '10px 20px',
+        backgroundColor: '#ffffffcc',
+        border: 'none',
+        borderRadius: '8px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        zIndex: 1001,
+      }}
+    >
+      ← Back
     </button>
+
+    <div style={{ width: '80%', maxWidth: '800px' }}>
+      <SnickoMeter1 />
+    </div>
+  </div>
+)}
+
+
 
     {snickoActive && (
   <div
