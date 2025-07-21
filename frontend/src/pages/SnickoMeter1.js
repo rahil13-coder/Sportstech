@@ -9,8 +9,8 @@ const SnickoMeter1 = () => {
   const [ballDirection, setBallDirection] = useState(null);
   const [swingAngle, setSwingAngle] = useState(90);
   const [ballSpeed, setBallSpeed] = useState(5);
-  const [isOut, setIsOut] = useState(false); // ✅ New
-  const [countdown, setCountdown] = useState(0); // ✅ New
+  const [isOut, setIsOut] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
   const canvasWidth = 800;
   const canvasHeight = 500;
@@ -135,11 +135,10 @@ const SnickoMeter1 = () => {
             const dx = Math.tan(angleRad - Math.PI / 2) * 2;
             setBallX((prevX) => prevX + dx);
 
-            // ✅ OUT CHECK
             if (newY >= batsmanY && ballX >= 380 && ballX <= 420) {
               setBallMoving(false);
               setIsOut(true);
-              setMessage("❌ OUT! Wait 21s to Retry.");
+              setMessage("❌ OUT! Wait 21s to Retry or Play Again Instantly Below.");
               setTimeout(() => {
                 setIsOut(false);
                 setMessage("🎮 Press SPACE to bowl!!");
@@ -191,16 +190,36 @@ const SnickoMeter1 = () => {
     <div style={{ textAlign: "center", marginTop: "1rem" }}>
       <h2>🏏 SNICOMETER1 – Cricket Shot Game</h2>
       <p>{message}</p>
+
       {isOut && countdown > 0 && (
-        <p style={{ color: "red", fontWeight: "bold" }}>
-          ⏳ Retry in: {countdown}s
-        </p>
+        <>
+          <p style={{ color: "red", fontWeight: "bold" }}>
+            ⏳ Retry in: {countdown}s
+          </p>
+          <button
+            onClick={() => window.open("https://sportstech-frontend.onrender.com/", "_blank")}
+            style={{
+              padding: "10px 20px",
+              margin: "10px",
+              backgroundColor: "#28a745",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              fontSize: "16px",
+              cursor: "pointer",
+            }}
+          >
+            🔁 Play Again Instantly
+          </button>
+        </>
       )}
+
       <p>
         ⌨️ Controls: <strong>SPACE</strong> = Bowl (with swing & speed) |{" "}
         <strong>↑</strong> = Straight | <strong>↓</strong> / <strong>8</strong> = Random Shot |{" "}
         <strong>←</strong> = Offside | <strong>→</strong> = Leg Side
       </p>
+
       <canvas
         ref={canvasRef}
         width={canvasWidth}
