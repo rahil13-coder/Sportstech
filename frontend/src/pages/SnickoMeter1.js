@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 
 const SnickoMeter1 = () => {
   const canvasRef = useRef(null);
+  const inputRef = useRef(null);
   const [ballX, setBallX] = useState(400);
   const [ballY, setBallY] = useState(100);
   const [ballMoving, setBallMoving] = useState(false);
@@ -15,6 +16,14 @@ const SnickoMeter1 = () => {
   const canvasWidth = 800;
   const canvasHeight = 500;
   const batsmanY = 420;
+
+  useEffect(() => {
+    // Focus the hidden input on mobile to bring up the keyboard
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   useEffect(() => {
     let countdownInterval;
@@ -35,7 +44,8 @@ const SnickoMeter1 = () => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.code === "Space") {
+      const key = e.key;
+      if (key === " " || key === "Spacebar") {
         e.preventDefault();
         if (!ballMoving && !isOut) {
           const angle = [89, 90, 91][Math.floor(Math.random() * 3)];
@@ -60,7 +70,7 @@ const SnickoMeter1 = () => {
         ballY <= batsmanY + 20 &&
         !ballDirection
       ) {
-        if (e.key === "ArrowDown" || e.key === "8") {
+        if (key === "ArrowDown" || key === "8") {
           const directions = ["straight", "offside", "legside"];
           const randomDir = directions[Math.floor(Math.random() * directions.length)];
           setBallDirection(randomDir);
@@ -78,16 +88,19 @@ const SnickoMeter1 = () => {
               break;
           }
         } else {
-          switch (e.key) {
+          switch (key) {
             case "ArrowUp":
+            case "2":
               setBallDirection("straight");
               setMessage("🚀 Straight Drive!");
               break;
             case "ArrowLeft":
+            case "4":
               setBallDirection("offside");
               setMessage("🏏 Offside Shot!");
               break;
             case "ArrowRight":
+            case "6":
               setBallDirection("legside");
               setMessage("🏏 Leg Side Shot!");
               break;
@@ -187,9 +200,17 @@ const SnickoMeter1 = () => {
   }, [ballMoving, ballDirection, ballX, ballY, swingAngle, ballSpeed, isOut]);
 
   return (
-    <div style={{ textAlign: "center", marginTop: "1rem" }}>
-      <h2>🏏 SNICOMETER1 – Cricket Shot Game</h2>
-      <p>{message}</p>
+    <div
+      style={{
+        textAlign: "center",
+        marginTop: "1rem",
+        padding: "0 10px",
+        maxWidth: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      <h2 style={{ fontSize: "1.5rem" }}>🏏 SNICOMETER1 – Cricket Shot Game</h2>
+      <p style={{ fontSize: "1rem" }}>{message}</p>
 
       {isOut && countdown > 0 && (
         <>
@@ -197,7 +218,9 @@ const SnickoMeter1 = () => {
             ⏳ Retry in: {countdown}s
           </p>
           <button
-            onClick={() => window.open("https://sportstech-frontend.onrender.com/", "_blank")}
+            onClick={() =>
+              window.open("https://occasion.ltd/", "_blank")
+            }
             style={{
               padding: "10px 20px",
               margin: "10px",
@@ -214,19 +237,40 @@ const SnickoMeter1 = () => {
         </>
       )}
 
-      <p>
-        ⌨️ Controls: <strong>SPACE</strong> = Bowl (with swing & speed) |{" "}
-        <strong>↑</strong> = Straight | <strong>↓</strong> / <strong>8</strong> = Random Shot |{" "}
-        <strong>←</strong> = Offside | <strong>→</strong> = Leg Side
+      <p style={{ fontSize: "0.95rem" }}>
+        ⌨️ Controls: <strong>SPACE</strong> = Bowl | <strong>↑ / 2</strong> = Straight |{" "}
+        <strong>↓ / 8</strong> = Random | <strong>← / 4</strong> = Offside | <strong>→ / 6</strong> = Leg Side
       </p>
 
-      <canvas
-        ref={canvasRef}
-        width={canvasWidth}
-        height={canvasHeight}
+      <div style={{ width: "100%", overflowX: "auto" }}>
+        <canvas
+          ref={canvasRef}
+          width={canvasWidth}
+          height={canvasHeight}
+          style={{
+            border: "2px solid black",
+            background: "#f9f9f9",
+            width: "100%",
+            maxWidth: "100%",
+            height: "auto",
+          }}
+        />
+      </div>
+
+      {/* Hidden input for mobile to trigger keyboard */}
+      <input
+        ref={inputRef}
+        type="text"
+        inputMode="numeric"
+        onKeyDown={(e) => {
+          if (e.key === "2" || e.key === "4" || e.key === "6" || e.key === "8" || e.key === " ") {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: e.key }));
+          }
+        }}
         style={{
-          border: "2px solid black",
-          background: "#f9f9f9",
+          position: "absolute",
+          opacity: 0,
+          pointerEvents: "none",
         }}
       />
     </div>
