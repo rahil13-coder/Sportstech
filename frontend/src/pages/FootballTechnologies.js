@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 
+
 // Utility to wait for global JS libraries (like tf, poseDetection)
 const waitForGlobal = (prop, timeout = 10000) =>
   new Promise((resolve, reject) => {
@@ -26,6 +27,7 @@ export default function FootballTechnologies() {
   const [useWebcam, setUseWebcam] = useState(false);
   const [showResultScreen, setShowResultScreen] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState(null);
+  const [facingMode, setFacingMode] = useState("user"); // "user" = front, "environment" = back
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -234,7 +236,9 @@ export default function FootballTechnologies() {
     setLog([]);
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+  video: { facingMode }, // "user" = front, "environment" = back
+});
       const video = videoRef.current;
       video.srcObject = stream;
       video.onloadedmetadata = () => {
@@ -255,9 +259,9 @@ export default function FootballTechnologies() {
 
   return (
     <section style={{ padding: 20 }}>
-      <h2>Football TECHNOLOGIES</h2>
+      <h2> Football TECHNOLOGIES </h2>
 
-      <button className="btn-view-football-tech" onClick={() => setShowTechnologies(true)} style={{ marginBottom: 10 }}>
+      <button className="btn-view-technologies" onClick={() => setShowTechnologies(true)} style={{ marginBottom: 10 }}>
         View Football Technologies
       </button>
 
@@ -297,7 +301,7 @@ export default function FootballTechnologies() {
           </button>
 
           <div>
-            <button className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
+            <button  className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
             onClick={() => setShowAnalytica(prev => !prev)} style={{ marginBottom: 10 }}>
               {showAnalytica ? "Close Football Analytica" : "Football Analytica"}
             </button>
@@ -305,9 +309,26 @@ export default function FootballTechnologies() {
             {showAnalytica && (
               <>
                 <div style={{ marginBottom: 10 }}>
-                  <input type="file" accept="video/*" onChange={handleUpload} />
-                  <button className="btn-use-webcam" onClick={handleWebcam} style={{ marginLeft: 10 }}>Use Webcam</button>
-                </div>
+  <input type="file" accept="video/*" onChange={handleUpload} />
+  
+  <select
+    value={facingMode}
+    onChange={e => setFacingMode(e.target.value)}
+    style={{ marginLeft: 10, padding: "5px", borderRadius: "5px" }}
+  >
+    <option value="user">Front Camera</option>
+    <option value="environment">Back Camera</option>
+  </select>
+
+  <button
+    className="btn-use-webcam1"
+    onClick={handleWebcam}
+    style={{ marginLeft: 10 }}
+  >
+    Use Webcam
+  </button>
+</div>
+
 
                 {showResultScreen && (
                   <div style={{ position: "relative" }}>
