@@ -237,6 +237,28 @@ const SnickoMeter1 = () => {
         </>
       )}
 
+      {/* Mobile-only bowl button */}
+{typeof window !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && !ballMoving && !isOut && (
+  <button
+    onClick={() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+    }}
+    style={{
+      padding: "10px 20px",
+      margin: "10px auto",
+      backgroundColor: "#007bff",
+      color: "white",
+      border: "none",
+      borderRadius: "6px",
+      fontSize: "18px",
+      cursor: "pointer",
+      display: "block"
+    }}
+  >
+    🎳 Bowl (0)
+  </button>
+)}
+
       <p style={{ fontSize: "0.95rem" }}>
         ⌨️ Controls: <strong>SPACE</strong> = Bowl | <strong>↑ / 2</strong> = Straight |{" "}
         <strong>↓ / 8</strong> = Random | <strong>← / 4</strong> = Offside | <strong>→ / 6</strong> = Leg Side
