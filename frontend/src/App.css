@@ -1276,3 +1276,193 @@ body {
     font-size: 12px;
   }
 }
+.loading {
+  color: white;
+  font-size: 24px;
+  text-align: center;
+  padding-top: 30vh;
+}
+
+.football-analytica-btn {
+  background-color: rgb(0, 134, 244);
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 1rem 0;
+  transition: background-color 0.3s ease;
+}
+
+.football-analytica-btn:hover {
+  background-color: deepskyblue;
+}
+
+
+.tennis-analytica-btn {
+  background-color: rgb(0, 134, 244);
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 1rem 0;
+  transition: background-color 0.3s ease;
+}
+
+.tennis-analytica-btn:hover {
+  background-color: deepskyblue;
+}
+
+.btn-view-technologies {
+  background-color: rgb(0, 110, 255);
+  color: white;
+  padding: 10px 20px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-open-analytica {
+  background-color: #007bff; /* Light blue */
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-close-analytica {
+  background-color: #0672ff; /* Darker blue for close button */
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-view-football-tech {
+  background-color: #007bff; /* blue */
+  color: white;
+  padding: 10px 20px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.btn-open-analytica {
+  background-color: #067aff; /* darker blue */
+  color: white;
+  padding: 10px 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.btn-close-analytica {
+  background-color: #076aff; /* even darker */
+  color: white;
+  padding: 10px 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.btn-use-webcam {
+  background-color: #0080ff;
+  color: white;
+  padding: 8px 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-use-webcam1 {
+  background-color: #0080ff;
+  color: white;
+  padding: 8px 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-toggle-tech {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 18px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-open-analytica {
+  background-color: #0056b3;
+  color: white;
+  padding: 10px 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-close-analytica {
+  background-color: #003d80;
+  color: white;
+  padding: 10px 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-use-webcam {
+  background-color: #3399ff;
+  color: white;
+  padding: 8px 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-file-upload {
+  background-color: #0066cc;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-file-upload::-webkit-file-upload-button {
+  background-color: #0066cc;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-file-upload:hover,
+.btn-use-webcam:hover,
+.btn-toggle-tech:hover,
+.btn-open-analytica:hover,
+.btn-close-analytica:hover {
+  filter: brightness(0.9);
+}
