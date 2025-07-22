@@ -469,7 +469,7 @@ export default function CricketAnalyzer() {
 
   return (
     <div>
-      <h2>Cricket Analyzer (Biomechanics &amp; Pose Quality Checker)</h2>
+      <h2>Click Replay to Play & Select X-ray then Double Click Replay</h2>
       <div className="snicko-controls-row" style={{ marginBottom: 12 }}>
         <label className="custom-file-upload">
           <input
