@@ -36,18 +36,18 @@ export default function FootballTechnologies() {
   const [objectModel, setObjectModel] = useState(null);
   const [poseDetector, setPoseDetector] = useState(null);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const lastDetectionTimeRef = useRef(0);
 
   useEffect(() => {
     if (!showAnalytica) return;
+
     const loadModels = async () => {
       try {
         await waitForGlobal("cocoSsd");
         const model = await window.cocoSsd.load();
         setObjectModel(model);
-        setLog(prev => [...prev, "✅ COCO-SSD Loaded"]);
+        setLog(prev => [...prev, "✅ Works Well on WEB-CAM"]);
       } catch (err) {
-        console.error(err);
+        console.error("COCO-SSD load error:", err);
         setLog(prev => [...prev, "❌ Failed to load COCO-SSD"]);
       }
 
@@ -60,35 +60,47 @@ export default function FootballTechnologies() {
           }
         );
         setPoseDetector(detector);
-        setLog(prev => [...prev, "✅ MoveNet Loaded"]);
+        setLog(prev => [...prev, "✅ Works Well on WEB-CAM"]);
       } catch (err) {
-        console.error(err);
+        console.error("Pose detector load error:", err);
         setLog(prev => [...prev, "❌ Failed to load MoveNet"]);
       }
     };
+
     loadModels();
     return () => cancelAnimationFrame(animationRef.current);
   }, [showAnalytica]);
 
   useEffect(() => {
     if (!pendingVideoFile || !videoRef.current) return;
+
     const video = videoRef.current;
     video.src = URL.createObjectURL(pendingVideoFile);
+
     video.onloadedmetadata = () => {
       setVideoLoaded(true);
-      video.play();
+      video.play().catch(err => console.error("Video play error:", err));
       startFrameLoop();
     };
+
     video.onerror = () => {
+      console.error("Video loading error");
       setLog(prev => [...prev, "❌ Error loading video"]);
     };
+
     return () => URL.revokeObjectURL(video.src);
   }, [pendingVideoFile, objectModel, poseDetector]);
 
   const startFrameLoop = () => {
-    const loop = async (now) => {
-      if (performance.now() - lastDetectionTimeRef.current > 100) {
-        lastDetectionTimeRef.current = performance.now();
+    const loop = async () => {
+      const video = videoRef.current;
+      if (
+        video &&
+        !video.paused &&
+        !video.ended &&
+        objectModel &&
+        poseDetector
+      ) {
         await processFrame();
       }
       animationRef.current = requestAnimationFrame(loop);
@@ -102,87 +114,88 @@ export default function FootballTechnologies() {
     if (!video || !canvas || !objectModel || !poseDetector) return;
 
     const ctx = canvas.getContext("2d");
-    const w = video.videoWidth;
-    const h = video.videoHeight;
-    if (canvas.width !== w || canvas.height !== h) {
-      canvas.width = w;
-      canvas.height = h;
+
+    if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
     }
 
-    ctx.clearRect(0, 0, w, h);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    if (facingMode === "user") {
-      ctx.save();
-      ctx.scale(-1, 1);
-      ctx.drawImage(video, -w, 0, w, h);
-      ctx.restore();
-    } else {
-      ctx.drawImage(video, 0, 0, w, h);
-    }
-
-    const predictions = await objectModel.detect(canvas);
-    const persons = predictions.filter(p => p.class === "person" && p.score >= 0.5);
-
+    // Mobile fix: draw video to temp canvas for pose detection
     const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = w;
-    tempCanvas.height = h;
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
     const tempCtx = tempCanvas.getContext("2d");
-    tempCtx.drawImage(video, 0, 0, w, h);
-    const poses = await poseDetector.estimatePoses(tempCanvas);
+    tempCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    if (persons.length === 0) {
-      setLog(prev => [...prev.slice(-50), `⚠️ No players detected at ${video.currentTime.toFixed(2)}s`]);
-    }
+    try {
+      const predictions = await objectModel.detect(canvas);
+      const persons = predictions.filter(p => p.class === "person" && p.score >= 0.5);
+      const poses = await poseDetector.estimatePoses(tempCanvas);
 
-    persons.forEach(p => {
-      const [x, y, width, height] = p.bbox;
-      const personCenterX = x + width / 2;
-      const personCenterY = y + height / 2;
+      if (persons.length === 0) {
+        setLog(prev => [...prev.slice(-50), `⚠️ No players detected at ${video.currentTime.toFixed(2)}s`]);
+      }
 
-      ctx.strokeStyle = COLORS.person;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x, y, width, height);
-      ctx.font = "14px Arial";
-      ctx.fillStyle = COLORS.person;
-      ctx.fillText("player", x, y - 6);
+      persons.forEach(p => {
+        const [x, y, width, height] = p.bbox;
+        const personCenterX = x + width / 2;
+        const personCenterY = y + height / 2;
 
-      // Match all skeletons
-      poses.forEach(pose => {
-        const nose = pose.keypoints.find(k => k.name === "nose");
-        if (nose && nose.score > 0.3) {
-          const d = Math.hypot(nose.x - personCenterX, nose.y - personCenterY);
-          if (d < 150) {
-            drawSkeleton(ctx, pose.keypoints);
+        ctx.strokeStyle = COLORS.person;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, width, height);
+        ctx.font = "14px Arial";
+        ctx.fillStyle = COLORS.person;
+        ctx.fillText("player", x, y - 6);
+
+        const closestPose = poses.reduce((closest, pose) => {
+          const nose = pose.keypoints?.find(k => k.name === "nose");
+          if (nose && nose.score > 0.3) {
+            const dist = Math.hypot(nose.x - personCenterX, nose.y - personCenterY);
+            if (!closest || dist < closest.dist) {
+              return { pose, dist };
+            }
           }
+          return closest;
+        }, null);
+
+        if (closestPose && closestPose.pose) {
+          drawSkeleton(ctx, closestPose.pose.keypoints);
         }
+
+        const id = `${Math.round(personCenterX)}-${Math.round(personCenterY)}`;
+        if (!window._lastPlayerPositions) window._lastPlayerPositions = {};
+        const prev = window._lastPlayerPositions[id] || { x: personCenterX, y: personCenterY, t: video.currentTime };
+        const dx = personCenterX - prev.x;
+        const dy = personCenterY - prev.y;
+        const dt = video.currentTime - prev.t || 0.1;
+        const speed = Math.sqrt(dx * dx + dy * dy) / dt;
+        const centerLine = canvas.width / 2;
+        const lateralDistance = Math.abs(personCenterX - centerLine);
+        window._lastPlayerPositions[id] = { x: personCenterX, y: personCenterY, t: video.currentTime };
+
+        let zone = "Center";
+        if (personCenterX < canvas.width / 3) zone = "Left Wing";
+        else if (personCenterX > (2 * canvas.width) / 3) zone = "Right Wing";
+
+        ctx.fillStyle = "yellow";
+        ctx.fillText(`📏 ${lateralDistance.toFixed(1)} px`, x, y + height + 12);
+        ctx.fillText(`🏃 ${speed.toFixed(1)} px/s`, x, y + height + 26);
+        ctx.fillStyle = "violet";
+        ctx.fillText(`📍 ${zone}`, x, y + height + 40);
       });
 
-      const id = `${Math.round(personCenterX)}-${Math.round(personCenterY)}`;
-      if (!window._lastPlayerPositions) window._lastPlayerPositions = {};
-      const prev = window._lastPlayerPositions[id] || { x: personCenterX, y: personCenterY, t: video.currentTime };
-      const dx = personCenterX - prev.x;
-      const dy = personCenterY - prev.y;
-      const dt = video.currentTime - prev.t || 0.1;
-      const speed = Math.sqrt(dx * dx + dy * dy) / dt;
-      const centerLine = canvas.width / 2;
-      const lateralDistance = Math.abs(personCenterX - centerLine);
-      window._lastPlayerPositions[id] = { x: personCenterX, y: personCenterY, t: video.currentTime };
-
-      let zone = "Center";
-      if (personCenterX < canvas.width / 3) zone = "Left Wing";
-      else if (personCenterX > (2 * canvas.width) / 3) zone = "Right Wing";
-
-      ctx.fillStyle = "yellow";
-      ctx.fillText(`📏 ${lateralDistance.toFixed(1)} px`, x, y + height + 12);
-      ctx.fillText(`🏃 ${speed.toFixed(1)} px/s`, x, y + height + 26);
-      ctx.fillStyle = "violet";
-      ctx.fillText(`📍 ${zone}`, x, y + height + 40);
-    });
-
-    setLog(prev => [
-      ...prev.slice(-50),
-      `🟢 Frame @ ${video.currentTime.toFixed(2)}s: ${persons.length} players detected`
-    ]);
+      setLog(prev => [
+        ...prev.slice(-50),
+        `🟢 Frame @ ${video.currentTime.toFixed(2)}s: ${persons.length} players detected`
+      ]);
+    } catch (err) {
+      console.error("Detection error:", err);
+      setLog(prev => [...prev.slice(-50), `❌ Error at ${video.currentTime.toFixed(2)}s`]);
+    }
   };
 
   const drawSkeleton = (ctx, keypoints) => {
@@ -204,7 +217,7 @@ export default function FootballTechnologies() {
     keypoints.forEach(kp => {
       if (kp.score > 0.5 && kp.x && kp.y) {
         ctx.beginPath();
-        ctx.arc(kp.x, kp.y, 4, 0, Math.PI * 2);
+        ctx.arc(kp.x, kp.y, 4, 0, 2 * Math.PI);
         ctx.fillStyle = COLORS.skeleton;
         ctx.fill();
       }
@@ -238,12 +251,13 @@ export default function FootballTechnologies() {
     setUseWebcam(true);
     setShowResultScreen(true);
     setLog([]);
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: facingMode,
-          width: { ideal: 480 },
-          height: { ideal: 360 }
+          facingMode,
+          width: { ideal: 640 },
+          height: { ideal: 480 }
         }
       });
       const video = videoRef.current;
@@ -255,25 +269,59 @@ export default function FootballTechnologies() {
       };
     } catch (err) {
       console.error("Webcam error:", err);
-      setLog(prev => [...prev, "❌ Webcam Access Error"]);
+      setLog(prev => [...prev, "❌ Failed to access webcam"]);
     }
   };
 
   return (
     <section style={{ padding: 20 }}>
-      <h2>Football TECHNOLOGIES</h2>
-      <button onClick={() => setShowTechnologies(true)} style={{ marginBottom: 10 }}>
+      <h2> Football TECHNOLOGIES </h2>
+
+      <button className="btn-view-technologies" onClick={() => setShowTechnologies(true)} style={{ marginBottom: 10 }}>
         View Football Technologies
       </button>
 
       {showTechnologies && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "#000000dd", padding: 20, overflowY: "auto", zIndex: 9999 }}>
-          <button onClick={() => setShowTechnologies(false)} style={{ background: "#fff", padding: 10, borderRadius: 8 }}>
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundImage: "url('/background.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            zIndex: 9999,
+            overflowY: "auto",
+            padding: 20
+          }}
+        >
+          <button
+            onClick={() => setShowTechnologies(false)}
+            style={{
+              position: "absolute",
+              top: "20px",
+              left: "20px",
+              padding: "10px 20px",
+              backgroundColor: "#ffffffcc",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: "bold",
+              cursor: "pointer",
+              zIndex: 10000,
+            }}
+          >
             ← Back
           </button>
 
-          <div style={{ marginTop: 10 }}>
-            <button onClick={() => setShowAnalytica(prev => !prev)} style={{ marginBottom: 10 }}>
+          <div>
+            <button
+              className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
+              onClick={() => setShowAnalytica(prev => !prev)}
+              style={{ marginBottom: 10 }}
+            >
               {showAnalytica ? "Close Football Analytica" : "Football Analytica"}
             </button>
 
@@ -281,18 +329,35 @@ export default function FootballTechnologies() {
               <>
                 <div style={{ marginBottom: 10 }}>
                   <input type="file" accept="video/*" onChange={handleUpload} />
-                  <select value={facingMode} onChange={e => setFacingMode(e.target.value)} style={{ marginLeft: 10 }}>
+                  <select
+                    value={facingMode}
+                    onChange={e => setFacingMode(e.target.value)}
+                    style={{ marginLeft: 10, padding: "5px", borderRadius: "5px" }}
+                  >
                     <option value="user">Front Camera</option>
                     <option value="environment">Back Camera</option>
                   </select>
-                  <button onClick={handleWebcam} style={{ marginLeft: 10 }}>Use Webcam</button>
+
+                  <button
+                    className="btn-use-webcam1"
+                    onClick={handleWebcam}
+                    style={{ marginLeft: 10 }}
+                  >
+                    Use Webcam
+                  </button>
                 </div>
 
                 {showResultScreen && (
                   <div style={{ position: "relative" }}>
                     <video
                       ref={videoRef}
-                      style={{ width: "100%", maxWidth: "100vw", background: "#000", display: videoLoaded ? "block" : "none" }}
+                      style={{
+                        width: "100%",
+                        height: "auto",
+                        maxWidth: "100vw",
+                        background: "#000",
+                        display: videoLoaded ? "block" : "none"
+                      }}
                       controls={!useWebcam}
                       muted
                       autoPlay
@@ -319,13 +384,15 @@ export default function FootballTechnologies() {
                   padding: 10,
                   backgroundColor: "#ffffffcc",
                   borderRadius: 5,
-                  maxHeight: "35vh",
+                  maxHeight: "30vh",
                   overflowY: "auto",
                   fontFamily: "monospace",
                   fontSize: 12
                 }}>
-                  {log.length > 0 ? log.map((msg, i) => (<div key={i}>{msg}</div>)) : (
-                    <div>No data yet. Upload a football video or use the webcam to get started.</div>
+                  {log.length > 0 ? (
+                    log.map((msg, i) => <div key={i}>{msg}</div>)
+                  ) : (
+                    <div>No data yet. Upload a football video or use webcam to start analysis.</div>
                   )}
                 </div>
               </>
