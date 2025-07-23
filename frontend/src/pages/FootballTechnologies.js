@@ -68,9 +68,7 @@ export default function FootballTechnologies() {
     };
 
     loadModels();
-    return () => {
-      cancelAnimationFrame(animationRef.current);
-    };
+    return () => cancelAnimationFrame(animationRef.current);
   }, [showAnalytica]);
 
   useEffect(() => {
@@ -82,7 +80,7 @@ export default function FootballTechnologies() {
     video.onloadedmetadata = () => {
       setVideoLoaded(true);
       video.play().catch(err => console.error("Video play error:", err));
-      startFrameLoop(); // Start frame loop using requestAnimationFrame
+      startFrameLoop();
     };
 
     video.onerror = () => {
@@ -116,6 +114,7 @@ export default function FootballTechnologies() {
     if (!video || !canvas || !objectModel || !poseDetector) return;
 
     const ctx = canvas.getContext("2d");
+
     if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -124,10 +123,17 @@ export default function FootballTechnologies() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+    // Mobile fix: draw video to temp canvas for pose detection
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
     try {
       const predictions = await objectModel.detect(canvas);
       const persons = predictions.filter(p => p.class === "person" && p.score >= 0.5);
-      const poses = await poseDetector.estimatePoses(canvas);
+      const poses = await poseDetector.estimatePoses(tempCanvas);
 
       if (persons.length === 0) {
         setLog(prev => [...prev.slice(-50), `⚠️ No players detected at ${video.currentTime.toFixed(2)}s`]);
@@ -248,14 +254,18 @@ export default function FootballTechnologies() {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode }
+        video: {
+          facingMode,
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        }
       });
       const video = videoRef.current;
       video.srcObject = stream;
       video.onloadedmetadata = () => {
         video.play();
         setVideoLoaded(true);
-        startFrameLoop(); // use requestAnimationFrame for webcam too
+        startFrameLoop();
       };
     } catch (err) {
       console.error("Webcam error:", err);
