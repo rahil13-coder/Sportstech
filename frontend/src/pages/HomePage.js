@@ -324,7 +324,7 @@ function HomePage() {
                 </section>
             ))}
             <footer className="custom-footer">
-                <p className="footer-text">© Rahil Technologies Pvt. Ltd.</p>
+                <p className="footer-text">© ZAKRU Technologies Pvt. Ltd.</p>
                 <div className="social-icons">
                     <a
                         href="https://youtube.com/@info1_system3?si=LVWSva_yuNARLLBu"

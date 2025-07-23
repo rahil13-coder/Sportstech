@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
 
-
 // Utility to wait for global JS libraries (like tf, poseDetection)
 const waitForGlobal = (prop, timeout = 10000) =>
   new Promise((resolve, reject) => {
@@ -27,11 +26,11 @@ export default function FootballTechnologies() {
   const [useWebcam, setUseWebcam] = useState(false);
   const [showResultScreen, setShowResultScreen] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState(null);
-  const [facingMode, setFacingMode] = useState("user"); // "user" = front, "environment" = back
+  const [facingMode, setFacingMode] = useState("user");
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const intervalRef = useRef(null);
+  const animationRef = useRef(null);
 
   const [log, setLog] = useState([]);
   const [objectModel, setObjectModel] = useState(null);
@@ -70,7 +69,7 @@ export default function FootballTechnologies() {
 
     loadModels();
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      cancelAnimationFrame(animationRef.current);
     };
   }, [showAnalytica]);
 
@@ -83,12 +82,7 @@ export default function FootballTechnologies() {
     video.onloadedmetadata = () => {
       setVideoLoaded(true);
       video.play().catch(err => console.error("Video play error:", err));
-
-      intervalRef.current = setInterval(() => {
-        if (!video.paused && !video.ended && objectModel && poseDetector) {
-          processFrame();
-        }
-      }, 100);
+      startFrameLoop(); // Start frame loop using requestAnimationFrame
     };
 
     video.onerror = () => {
@@ -98,6 +92,23 @@ export default function FootballTechnologies() {
 
     return () => URL.revokeObjectURL(video.src);
   }, [pendingVideoFile, objectModel, poseDetector]);
+
+  const startFrameLoop = () => {
+    const loop = async () => {
+      const video = videoRef.current;
+      if (
+        video &&
+        !video.paused &&
+        !video.ended &&
+        objectModel &&
+        poseDetector
+      ) {
+        await processFrame();
+      }
+      animationRef.current = requestAnimationFrame(loop);
+    };
+    animationRef.current = requestAnimationFrame(loop);
+  };
 
   const processFrame = async () => {
     const video = videoRef.current;
@@ -237,19 +248,14 @@ export default function FootballTechnologies() {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-  video: { facingMode }, // "user" = front, "environment" = back
-});
+        video: { facingMode }
+      });
       const video = videoRef.current;
       video.srcObject = stream;
       video.onloadedmetadata = () => {
         video.play();
         setVideoLoaded(true);
-
-        intervalRef.current = setInterval(() => {
-          if (!video.paused && objectModel && poseDetector) {
-            processFrame();
-          }
-        }, 100);
+        startFrameLoop(); // use requestAnimationFrame for webcam too
       };
     } catch (err) {
       console.error("Webcam error:", err);
@@ -301,34 +307,35 @@ export default function FootballTechnologies() {
           </button>
 
           <div>
-            <button  className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
-            onClick={() => setShowAnalytica(prev => !prev)} style={{ marginBottom: 10 }}>
+            <button
+              className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
+              onClick={() => setShowAnalytica(prev => !prev)}
+              style={{ marginBottom: 10 }}
+            >
               {showAnalytica ? "Close Football Analytica" : "Football Analytica"}
             </button>
 
             {showAnalytica && (
               <>
                 <div style={{ marginBottom: 10 }}>
-  <input type="file" accept="video/*" onChange={handleUpload} />
-  
-  <select
-    value={facingMode}
-    onChange={e => setFacingMode(e.target.value)}
-    style={{ marginLeft: 10, padding: "5px", borderRadius: "5px" }}
-  >
-    <option value="user">Front Camera</option>
-    <option value="environment">Back Camera</option>
-  </select>
+                  <input type="file" accept="video/*" onChange={handleUpload} />
+                  <select
+                    value={facingMode}
+                    onChange={e => setFacingMode(e.target.value)}
+                    style={{ marginLeft: 10, padding: "5px", borderRadius: "5px" }}
+                  >
+                    <option value="user">Front Camera</option>
+                    <option value="environment">Back Camera</option>
+                  </select>
 
-  <button
-    className="btn-use-webcam1"
-    onClick={handleWebcam}
-    style={{ marginLeft: 10 }}
-  >
-    Use Webcam
-  </button>
-</div>
-
+                  <button
+                    className="btn-use-webcam1"
+                    onClick={handleWebcam}
+                    style={{ marginLeft: 10 }}
+                  >
+                    Use Webcam
+                  </button>
+                </div>
 
                 {showResultScreen && (
                   <div style={{ position: "relative" }}>

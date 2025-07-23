@@ -6,7 +6,7 @@ const SnickoMeter1 = () => {
   const [ballX, setBallX] = useState(400);
   const [ballY, setBallY] = useState(100);
   const [ballMoving, setBallMoving] = useState(false);
-  const [message, setMessage] = useState("🎮 Press SPACE to bowl the ball!");
+  const [message, setMessage] = useState("🎮 Press SPACE or 0 to bowl the ball!");
   const [ballDirection, setBallDirection] = useState(null);
   const [swingAngle, setSwingAngle] = useState(90);
   const [ballSpeed, setBallSpeed] = useState(5);
@@ -24,11 +24,10 @@ const SnickoMeter1 = () => {
       if (isMobile && inputRef.current) {
         inputRef.current.focus();
       }
-    }, 2000); // every 2s
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
-  // Also refocus input on any mobile touch (e.g. canvas tap)
   useEffect(() => {
     const handleTouch = () => {
       if (inputRef.current) inputRef.current.focus();
@@ -57,22 +56,18 @@ const SnickoMeter1 = () => {
   useEffect(() => {
     const handleKeyDown = (e) => {
       const key = e.key;
-      if (key === " " || key === "Spacebar") {
+      if ((key === " " || key === "Spacebar" || key === "0") && !ballMoving && !isOut) {
         e.preventDefault();
-        if (!ballMoving && !isOut) {
-          const angle = [89, 90, 91][Math.floor(Math.random() * 3)];
-          setSwingAngle(angle);
-
-          const speedOptions = [3, 4, 5, 6, 7, 8, 9, 10];
-          const randomSpeed = speedOptions[Math.floor(Math.random() * speedOptions.length)];
-          setBallSpeed(randomSpeed);
-
-          setMessage(`🏏 Ball coming! Swing angle: ${angle}°, Speed: ${randomSpeed}`);
-          setBallX(400);
-          setBallY(100);
-          setBallDirection(null);
-          setBallMoving(true);
-        }
+        const angle = [89, 90, 91][Math.floor(Math.random() * 3)];
+        setSwingAngle(angle);
+        const speedOptions = [3, 4, 5, 6, 7, 8, 9, 10];
+        const randomSpeed = speedOptions[Math.floor(Math.random() * speedOptions.length)];
+        setBallSpeed(randomSpeed);
+        setMessage(`🏏 Ball coming! Swing angle: ${angle}°, Speed: ${randomSpeed}`);
+        setBallX(400);
+        setBallY(100);
+        setBallDirection(null);
+        setBallMoving(true);
         return;
       }
 
@@ -165,13 +160,13 @@ const SnickoMeter1 = () => {
               setMessage("❌ OUT! Wait 21s to Retry or Play Again Instantly Below.");
               setTimeout(() => {
                 setIsOut(false);
-                setMessage("🎮 Press SPACE to bowl!!");
+                setMessage("🎮 Press SPACE or 0 to bowl again!");
               }, 21000);
             }
 
             if (newY > batsmanY + 30 && !isOut) {
               setBallMoving(false);
-              setMessage("❌ Missed! Press SPACE to bowl again.");
+              setMessage("❌ Missed! Press SPACE or 0 to bowl again.");
             }
           } else {
             switch (ballDirection) {
@@ -196,7 +191,7 @@ const SnickoMeter1 = () => {
 
             if (newY < 0 || ballX < 0 || ballX > canvasWidth) {
               setBallMoving(false);
-              setMessage("✅ Shot Played! Press SPACE to bowl again.");
+              setMessage("✅ Shot Played! Press SPACE or 0 to bowl again.");
             }
           }
 
@@ -218,6 +213,11 @@ const SnickoMeter1 = () => {
         padding: "0 10px",
         maxWidth: "100%",
         boxSizing: "border-box",
+        height: "100vh",
+        overflow: "auto",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-start",
       }}
     >
       <h2 style={{ fontSize: "1.5rem" }}>🏏 SNICOMETER1 – Cricket Shot Game</h2>
@@ -229,9 +229,7 @@ const SnickoMeter1 = () => {
             ⏳ Retry in: {countdown}s
           </p>
           <button
-            onClick={() =>
-              window.open("https://occasion.ltd/", "_blank")
-            }
+            onClick={() => window.open("https://occasion.ltd/", "_blank")}
             style={{
               padding: "10px 20px",
               margin: "10px",
@@ -248,14 +246,14 @@ const SnickoMeter1 = () => {
         </>
       )}
 
-      {/* Mobile-only bowl button */}
+      {/* Mobile-only Bowl Button */}
       {typeof window !== "undefined" &&
         /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) &&
         !ballMoving &&
         !isOut && (
           <button
             onClick={() => {
-              window.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+              window.dispatchEvent(new KeyboardEvent("keydown", { key: "0" }));
             }}
             style={{
               padding: "10px 20px",
@@ -269,13 +267,14 @@ const SnickoMeter1 = () => {
               display: "block",
             }}
           >
-            🎳 Bowl (0)
+            🎳 Bowl (Press 0)
           </button>
         )}
 
       <p style={{ fontSize: "0.95rem" }}>
-        ⌨️ Controls: <strong>SPACE</strong> = Bowl | <strong>↑ / 2</strong> = Straight |{" "}
-        <strong>↓ / 8</strong> = Random | <strong>← / 4</strong> = Offside | <strong>→ / 6</strong> = Leg Side
+        ⌨️ Controls: <strong>SPACE / 0</strong> = Bowl | <strong>↑ / 2</strong> = Straight |{" "}
+        <strong>↓ / 8</strong> = Random | <strong>← / 4</strong> = Offside |{" "}
+        <strong>→ / 6</strong> = Leg Side
       </p>
 
       <div
@@ -301,13 +300,13 @@ const SnickoMeter1 = () => {
         />
       </div>
 
-      {/* Hidden input for mobile to keep keyboard open */}
+      {/* Hidden Input to Keep Mobile Keyboard Open */}
       <input
         ref={inputRef}
         type="text"
         inputMode="numeric"
         onKeyDown={(e) => {
-          const validKeys = ["2", "4", "6", "8", " "];
+          const validKeys = ["0", "2", "4", "6", "8"];
           if (validKeys.includes(e.key)) {
             e.preventDefault();
             window.dispatchEvent(new KeyboardEvent("keydown", { key: e.key }));
