@@ -6,6 +6,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // ✅ Lazy load pages to reduce initial load
 const HomePage = lazy(() => import('./pages/HomePage'));
 const Cricket3 = lazy(() => import('./pages/cricket3'));
+const SnickoMeter = lazy(() => import('./pages/SnickoMeter'));
+const FootballTechnologies = lazy(() => import('./pages/FootballTechnologies'));
+const TennisTechnologies = lazy(() => import('./pages/TennisTechnologies'));
+
 
 // ✅ Global error handler
 window.onerror = function (message, source, lineno, colno, error) {
