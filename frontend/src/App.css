@@ -79,8 +79,8 @@ background-color: #282c34;
   font-size: 3rem; /* large title */
   text-align: center;
   margin-bottom: 2rem;
-  font-weight: 800;
-  color: #ffffff; /* white text for dark backgrounds */
+  font-weight: 700;
+  color: #000000ea; /* white text for dark backgrounds */
   text-shadow: 2px 2px 8px rgb(0, 0, 0); /* stylish shadow */
   letter-spacing: 2px;
   animation: fadeIn 2s ease-in-out;

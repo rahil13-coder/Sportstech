@@ -17,12 +17,24 @@ const SnickoMeter1 = () => {
   const canvasHeight = 500;
   const batsmanY = 420;
 
+  // Keep mobile input focused so keyboard stays open
   useEffect(() => {
-    // Focus the hidden input on mobile to bring up the keyboard
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile && inputRef.current) {
-      inputRef.current.focus();
-    }
+    const interval = setInterval(() => {
+      if (isMobile && inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 2000); // every 2s
+    return () => clearInterval(interval);
+  }, []);
+
+  // Also refocus input on any mobile touch (e.g. canvas tap)
+  useEffect(() => {
+    const handleTouch = () => {
+      if (inputRef.current) inputRef.current.focus();
+    };
+    window.addEventListener("touchstart", handleTouch);
+    return () => window.removeEventListener("touchstart", handleTouch);
   }, []);
 
   useEffect(() => {
@@ -120,7 +132,6 @@ const SnickoMeter1 = () => {
 
     const drawScene = () => {
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
       ctx.strokeStyle = "gray";
       ctx.setLineDash([5, 3]);
       ctx.strokeRect(50, 50, 700, 400);
@@ -238,33 +249,44 @@ const SnickoMeter1 = () => {
       )}
 
       {/* Mobile-only bowl button */}
-{typeof window !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && !ballMoving && !isOut && (
-  <button
-    onClick={() => {
-      window.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
-    }}
-    style={{
-      padding: "10px 20px",
-      margin: "10px auto",
-      backgroundColor: "#007bff",
-      color: "white",
-      border: "none",
-      borderRadius: "6px",
-      fontSize: "18px",
-      cursor: "pointer",
-      display: "block"
-    }}
-  >
-    🎳 Bowl (0)
-  </button>
-)}
+      {typeof window !== "undefined" &&
+        /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) &&
+        !ballMoving &&
+        !isOut && (
+          <button
+            onClick={() => {
+              window.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+            }}
+            style={{
+              padding: "10px 20px",
+              margin: "10px auto",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              fontSize: "18px",
+              cursor: "pointer",
+              display: "block",
+            }}
+          >
+            🎳 Bowl (0)
+          </button>
+        )}
 
       <p style={{ fontSize: "0.95rem" }}>
         ⌨️ Controls: <strong>SPACE</strong> = Bowl | <strong>↑ / 2</strong> = Straight |{" "}
         <strong>↓ / 8</strong> = Random | <strong>← / 4</strong> = Offside | <strong>→ / 6</strong> = Leg Side
       </p>
 
-      <div style={{ width: "100%", overflowX: "auto" }}>
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          overflowX: "hidden",
+        }}
+      >
         <canvas
           ref={canvasRef}
           width={canvasWidth}
@@ -273,25 +295,31 @@ const SnickoMeter1 = () => {
             border: "2px solid black",
             background: "#f9f9f9",
             width: "100%",
-            maxWidth: "100%",
+            maxWidth: "800px",
             height: "auto",
           }}
         />
       </div>
 
-      {/* Hidden input for mobile to trigger keyboard */}
+      {/* Hidden input for mobile to keep keyboard open */}
       <input
         ref={inputRef}
         type="text"
         inputMode="numeric"
         onKeyDown={(e) => {
-          if (e.key === "2" || e.key === "4" || e.key === "6" || e.key === "8" || e.key === " ") {
+          const validKeys = ["2", "4", "6", "8", " "];
+          if (validKeys.includes(e.key)) {
+            e.preventDefault();
             window.dispatchEvent(new KeyboardEvent("keydown", { key: e.key }));
           }
         }}
         style={{
           position: "absolute",
-          opacity: 0,
+          opacity: 0.01,
+          bottom: 0,
+          left: 0,
+          width: "1px",
+          height: "1px",
           pointerEvents: "none",
         }}
       />

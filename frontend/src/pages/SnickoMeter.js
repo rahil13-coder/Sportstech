@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 
-// Utility: Wait for global JS libraries (like tf, poseDetection)
+
+// Utility to wait for global JS libraries (like tf, poseDetection)
 const waitForGlobal = (prop, timeout = 10000) =>
   new Promise((resolve, reject) => {
     let elapsed = 0;
@@ -26,6 +27,7 @@ export default function FootballTechnologies() {
   const [useWebcam, setUseWebcam] = useState(false);
   const [showResultScreen, setShowResultScreen] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState(null);
+  const [facingMode, setFacingMode] = useState("user"); // "user" = front, "environment" = back
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -125,7 +127,6 @@ export default function FootballTechnologies() {
         const personCenterX = x + width / 2;
         const personCenterY = y + height / 2;
 
-        // Bounding box & label
         ctx.strokeStyle = COLORS.person;
         ctx.lineWidth = 2;
         ctx.strokeRect(x, y, width, height);
@@ -133,7 +134,6 @@ export default function FootballTechnologies() {
         ctx.fillStyle = COLORS.person;
         ctx.fillText("player", x, y - 6);
 
-        // Skeleton overlay
         const closestPose = poses.reduce((closest, pose) => {
           const nose = pose.keypoints?.find(k => k.name === "nose");
           if (nose && nose.score > 0.3) {
@@ -149,7 +149,6 @@ export default function FootballTechnologies() {
           drawSkeleton(ctx, closestPose.pose.keypoints);
         }
 
-        // ⚡ Speed Estimation (px/sec)
         const id = `${Math.round(personCenterX)}-${Math.round(personCenterY)}`;
         if (!window._lastPlayerPositions) window._lastPlayerPositions = {};
         const prev = window._lastPlayerPositions[id] || { x: personCenterX, y: personCenterY, t: video.currentTime };
@@ -157,18 +156,14 @@ export default function FootballTechnologies() {
         const dy = personCenterY - prev.y;
         const dt = video.currentTime - prev.t || 0.1;
         const speed = Math.sqrt(dx * dx + dy * dy) / dt;
-
-        // 📏 Distance from center
         const centerLine = canvas.width / 2;
         const lateralDistance = Math.abs(personCenterX - centerLine);
         window._lastPlayerPositions[id] = { x: personCenterX, y: personCenterY, t: video.currentTime };
 
-        // 🗺️ Field Zone
         let zone = "Center";
         if (personCenterX < canvas.width / 3) zone = "Left Wing";
         else if (personCenterX > (2 * canvas.width) / 3) zone = "Right Wing";
 
-        // Overlay analytics
         ctx.fillStyle = "yellow";
         ctx.fillText(`📏 ${lateralDistance.toFixed(1)} px`, x, y + height + 12);
         ctx.fillText(`🏃 ${speed.toFixed(1)} px/s`, x, y + height + 26);
@@ -241,7 +236,9 @@ export default function FootballTechnologies() {
     setLog([]);
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+  video: { facingMode }, // "user" = front, "environment" = back
+});
       const video = videoRef.current;
       video.srcObject = stream;
       video.onloadedmetadata = () => {
@@ -262,83 +259,128 @@ export default function FootballTechnologies() {
 
   return (
     <section style={{ padding: 20 }}>
-      <h2>Cricket TECHNOLOGIES</h2>
+      <h2> Cricket TECHNOLOGIES </h2>
 
-      <button  className="btn-toggle-tech" onClick={() => setShowTechnologies(prev => !prev)} style={{ marginBottom: 10 }}>
-        {showTechnologies ? "Close Cricket Technologies" : "View Cricket Technologies"}
+      <button className="btn-view-technologies" onClick={() => setShowTechnologies(true)} style={{ marginBottom: 10 }}>
+        View Cricket Technologies
       </button>
 
       {showTechnologies && (
-        <div>
-          <button className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
-          onClick={() => setShowAnalytica(prev => !prev)} style={{ marginBottom: 10 }}>
-            {showAnalytica ? "Close Cricket Analytica" : "Cricket Analytica"}
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundImage: "url('/background.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            zIndex: 9999,
+            overflowY: "auto",
+            padding: 20
+          }}
+        >
+          <button
+            onClick={() => setShowTechnologies(false)}
+            style={{
+              position: "absolute",
+              top: "20px",
+              left: "20px",
+              padding: "10px 20px",
+              backgroundColor: "#ffffffcc",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: "bold",
+              cursor: "pointer",
+              zIndex: 10000,
+            }}
+          >
+            ← Back
           </button>
 
-          {showAnalytica && (
-            <>
-              <div style={{ marginBottom: 10 }}>
-                <input type="file" accept="video/*" onChange={handleUpload} />
-                <button className="btn-use-webcam" onClick={handleWebcam} style={{ marginLeft: 10 }}>Use Webcam</button>
-              </div>
+          <div>
+            <button  className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
+            onClick={() => setShowAnalytica(prev => !prev)} style={{ marginBottom: 10 }}>
+              {showAnalytica ? "Close Cricket Analytica" : "Cricket Analytica"}
+            </button>
 
-              {showResultScreen && (
-                <div style={{
-                  backgroundImage: "url('/background.jpg')",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  padding: 20,
-                  borderRadius: 10,
-                  position: "relative"
-                }}>
-                  <video
-                    ref={videoRef}
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      maxWidth: "100vw",
-                      background: "#000",
-                      display: videoLoaded ? "block" : "none"
-                    }}
-                    controls={!useWebcam}
-                    muted
-                    autoPlay
-                  />
-                  {videoLoaded && (
-                    <canvas
-                      ref={canvasRef}
+            {showAnalytica && (
+              <>
+                <div style={{ marginBottom: 10 }}>
+  <input type="file" accept="video/*" onChange={handleUpload} />
+  
+  <select
+    value={facingMode}
+    onChange={e => setFacingMode(e.target.value)}
+    style={{ marginLeft: 10, padding: "5px", borderRadius: "5px" }}
+  >
+    <option value="user">Front Camera</option>
+    <option value="environment">Back Camera</option>
+  </select>
+
+  <button
+    className="btn-use-webcam1"
+    onClick={handleWebcam}
+    style={{ marginLeft: 10 }}
+  >
+    Use Webcam
+  </button>
+</div>
+
+
+                {showResultScreen && (
+                  <div style={{ position: "relative" }}>
+                    <video
+                      ref={videoRef}
                       style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
                         width: "100%",
                         height: "auto",
                         maxWidth: "100vw",
-                        pointerEvents: "none"
+                        background: "#000",
+                        display: videoLoaded ? "block" : "none"
                       }}
+                      controls={!useWebcam}
+                      muted
+                      autoPlay
                     />
+                    {videoLoaded && (
+                      <canvas
+                        ref={canvasRef}
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "auto",
+                          maxWidth: "100vw",
+                          pointerEvents: "none"
+                        }}
+                      />
+                    )}
+                  </div>
+                )}
+
+                <div style={{
+                  marginTop: 20,
+                  padding: 10,
+                  backgroundColor: "#ffffffcc",
+                  borderRadius: 5,
+                  maxHeight: "30vh",
+                  overflowY: "auto",
+                  fontFamily: "monospace",
+                  fontSize: 12
+                }}>
+                  {log.length > 0 ? (
+                    log.map((msg, i) => <div key={i}>{msg}</div>)
+                  ) : (
+                    <div>No data yet. Upload a football video or use webcam to start analysis.</div>
                   )}
                 </div>
-              )}
-
-              <div style={{
-                marginTop: 20,
-                padding: 10,
-                backgroundColor: "#f0f0f0",
-                borderRadius: 5,
-                maxHeight: "30vh",
-                overflowY: "auto",
-                fontFamily: "monospace",
-                fontSize: 12
-              }}>
-                {log.length > 0 ? (
-                  log.map((msg, i) => <div key={i}>{msg}</div>)
-                ) : (
-                  <div>No data yet. Upload a football video or use webcam to start analysis.</div>
-                )}
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
       )}
     </section>

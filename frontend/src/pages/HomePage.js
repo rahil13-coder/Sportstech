@@ -118,8 +118,10 @@ function HomePage() {
             
             <h1 className="hero-title">Sports Technology Explorer</h1>
             <h1 className="hero-title1">Before using- LET THE MODEL TO LOAD FIRST</h1>
+            <h6 className="hero-title1">Works Excellent on Desktop WEBCAM</h6>
+            
 
-            <section className="hero-title1">
+            <section className="hero-title">
                 <h2>Cricket Informatica</h2>
                 <button className="btn btn-warning mb-3" onClick={() => setHawkEyeActive(!hawkEyeActive)}>
                     {hawkEyeActive ? "Close Cricket Analytics" : "Cricket Analytics"}
