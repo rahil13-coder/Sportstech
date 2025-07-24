@@ -258,8 +258,8 @@ export default function FootballTechnologies() {
   };
 
   return (
-    <section style={{ padding: 20 }}>
-      <h2> Tennis TECHNOLOGIES </h2>
+    <section style={{ padding: "1px" }}>
+      <h2 className="tennis"  > TENNIS TECHNOLOGIES </h2>
 
       <button className="btn-view-technologies" onClick={() => setShowTechnologies(true)} style={{ marginBottom: 10 }}>
         View Tennis Technologies
@@ -303,7 +303,7 @@ export default function FootballTechnologies() {
           <div>
             <button  className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
             onClick={() => setShowAnalytica(prev => !prev)} style={{ marginBottom: 10 }}>
-              {showAnalytica ? "Close Tennis Analytica" : "Tennis Analytica"}
+              {showAnalytica ? "Close" : "Tennis Analytica"}
             </button>
 
             {showAnalytica && (

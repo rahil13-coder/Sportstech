@@ -274,10 +274,10 @@ export default function FootballTechnologies() {
   };
 
   return (
-    <section style={{ padding: 20 }}>
-      <h2> Football TECHNOLOGIES </h2>
+    <section style={{ padding: "20px" }}>
+      <h2 className= "football"style={{ marginBottom: "12px" }}> FOOTBALL TECHNOLOGIES </h2>
 
-      <button className="btn-view-technologies" onClick={() => setShowTechnologies(true)} style={{ marginBottom: 10 }}>
+      <button className="btn-view-technologies" onClick={() => setShowTechnologies(true)} style={{ marginBottom: "10px" }}>
         View Football Technologies
       </button>
 
@@ -322,7 +322,7 @@ export default function FootballTechnologies() {
               onClick={() => setShowAnalytica(prev => !prev)}
               style={{ marginBottom: 10 }}
             >
-              {showAnalytica ? "Close Football Analytica" : "Football Analytica"}
+              {showAnalytica ? "Close " : "Football Analytica"}
             </button>
 
             {showAnalytica && (

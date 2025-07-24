@@ -168,7 +168,7 @@ const CricketTechnologies = ({ cricketTech }) => {
     <section className="cricket">
       <h2>CRICKET TECHNOLOGIES</h2>
       <button className="c1" onClick={() => setShow(!show)}>
-        {show ? "Close Cricket Technologies" : "View Cricket Technologies"}
+        {show ? "Close" : "View Cricket Technologies"}
       </button>
 
       {show && (

@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
 
-
 // Utility to wait for global JS libraries (like tf, poseDetection)
 const waitForGlobal = (prop, timeout = 10000) =>
   new Promise((resolve, reject) => {
@@ -27,7 +26,7 @@ export default function FootballTechnologies() {
   const [useWebcam, setUseWebcam] = useState(false);
   const [showResultScreen, setShowResultScreen] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState(null);
-  const [facingMode, setFacingMode] = useState("user"); // "user" = front, "environment" = back
+  const [facingMode, setFacingMode] = useState("user");
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -237,8 +236,8 @@ export default function FootballTechnologies() {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-  video: { facingMode }, // "user" = front, "environment" = back
-});
+        video: { facingMode },
+      });
       const video = videoRef.current;
       video.srcObject = stream;
       video.onloadedmetadata = () => {
@@ -259,11 +258,25 @@ export default function FootballTechnologies() {
 
   return (
     <section style={{ padding: 20 }}>
-      <h2> Cricket TECHNOLOGIES </h2>
-
-      <button className="btn-view-technologies" onClick={() => setShowTechnologies(true)} style={{ marginBottom: 10 }}>
-        View Cricket Technologies
-      </button>
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px",alignItems: "center", }}>
+        <button
+          className="btn-view-technologies"
+          onClick={() => setShowTechnologies(true)}
+          style={{
+            padding: "12px 20px",
+            fontSize: "16px",
+            fontWeight: "bold",
+            borderRadius: "8px",
+            backgroundColor: "#007bff",
+            color: "#fff",
+            border: "none",
+            width: "100%",
+            maxWidth: "320px",
+          }}
+        >
+          View Cricket Technologies
+        </button>
+      </div>
 
       {showTechnologies && (
         <div
@@ -286,13 +299,14 @@ export default function FootballTechnologies() {
             onClick={() => setShowTechnologies(false)}
             style={{
               position: "absolute",
-              top: "20px",
-              left: "20px",
-              padding: "10px 20px",
-              backgroundColor: "#ffffffcc",
-              border: "none",
+              top: "10px",
+              left: "10px",
+              padding: "10px 16px",
+              backgroundColor: "#ffffffee",
+              border: "1px solid #ccc",
               borderRadius: "8px",
               fontWeight: "bold",
+              fontSize: "16px",
               cursor: "pointer",
               zIndex: 10000,
             }}
@@ -300,35 +314,37 @@ export default function FootballTechnologies() {
             ← Back
           </button>
 
-          <div>
-            <button  className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
-            onClick={() => setShowAnalytica(prev => !prev)} style={{ marginBottom: 10 }}>
-              {showAnalytica ? "Close Cricket Analytica" : "Cricket Analytica"}
+          <div style={{ marginTop: 10 }}>
+            <button
+              className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
+              onClick={() => setShowAnalytica(prev => !prev)}
+              style={{ marginBottom:  10, fontSize: "17px", padding: "8px 14px", borderRadius: "6px"}}
+            >
+              {showAnalytica ? "Close" : "Cricket Analytica"}
             </button>
 
             {showAnalytica && (
               <>
                 <div style={{ marginBottom: 10 }}>
-  <input type="file" accept="video/*" onChange={handleUpload} />
-  
-  <select
-    value={facingMode}
-    onChange={e => setFacingMode(e.target.value)}
-    style={{ marginLeft: 10, padding: "5px", borderRadius: "5px" }}
-  >
-    <option value="user">Front Camera</option>
-    <option value="environment">Back Camera</option>
-  </select>
+                  <input type="file" accept="video/*" onChange={handleUpload} />
 
-  <button
-    className="btn-use-webcam1"
-    onClick={handleWebcam}
-    style={{ marginLeft: 10 }}
-  >
-    Use Webcam
-  </button>
-</div>
+                  <select
+                    value={facingMode}
+                    onChange={e => setFacingMode(e.target.value)}
+                    style={{ marginLeft: 10, padding: "5px", borderRadius: "5px" }}
+                  >
+                    <option value="user">Front Camera</option>
+                    <option value="environment">Back Camera</option>
+                  </select>
 
+                  <button
+                    className="btn-use-webcam1"
+                    onClick={handleWebcam}
+                    style={{ marginLeft: 10 }}
+                  >
+                    Use Webcam
+                  </button>
+                </div>
 
                 {showResultScreen && (
                   <div style={{ position: "relative" }}>
