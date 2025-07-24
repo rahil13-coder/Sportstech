@@ -6,7 +6,7 @@ const SnickoMeter1 = () => {
   const [ballX, setBallX] = useState(400);
   const [ballY, setBallY] = useState(100);
   const [ballMoving, setBallMoving] = useState(false);
-  const [message, setMessage] = useState("🎮 Press SPACE or 0 to bowl the ball!");
+  const [message, setMessage] = useState("Cricket");
   const [ballDirection, setBallDirection] = useState(null);
   const [swingAngle, setSwingAngle] = useState(90);
   const [ballSpeed, setBallSpeed] = useState(5);
@@ -86,10 +86,10 @@ const SnickoMeter1 = () => {
               setMessage("🎲 Random Shot: 🚀 Straight Drive!");
               break;
             case "offside":
-              setMessage("🎲 Random Shot: 🏏 Offside Shot!");
+              setMessage("🎲 Random Shot: 🏏 Good Shot!");
               break;
             case "legside":
-              setMessage("🎲 Random Shot: 🏏 Leg Side Shot!");
+              setMessage("🎲 Random Shot: 🏏 Excellent Shot Shot!");
               break;
             default:
               break;
@@ -104,12 +104,12 @@ const SnickoMeter1 = () => {
             case "ArrowLeft":
             case "4":
               setBallDirection("offside");
-              setMessage("🏏 Offside Shot!");
+              setMessage("🏏 Leg side Shot!");
               break;
             case "ArrowRight":
             case "6":
               setBallDirection("legside");
-              setMessage("🏏 Leg Side Shot!");
+              setMessage("🏏  OffSide Shot!");
               break;
             default:
               break;
@@ -220,7 +220,7 @@ const SnickoMeter1 = () => {
         justifyContent: "flex-start",
       }}
     >
-      <h2 style={{ fontSize: "1.5rem" }}>🏏 SNICOMETER1 – Cricket Shot Game</h2>
+      <h2 style={{ fontSize: "1.5rem" }}> Play</h2>
       <p style={{ fontSize: "1rem" }}>{message}</p>
 
       {isOut && countdown > 0 && (
@@ -273,8 +273,8 @@ const SnickoMeter1 = () => {
 
       <p style={{ fontSize: "0.95rem" }}>
         ⌨️ Controls: <strong>SPACE / 0</strong> = Bowl | <strong>↑ / 2</strong> = Straight |{" "}
-        <strong>↓ / 8</strong> = Random | <strong>← / 4</strong> = Offside |{" "}
-        <strong>→ / 6</strong> = Leg Side
+        <strong>↓ / 8</strong> = Random | <strong>← / 4</strong> = Legside |{" "}
+        <strong>→ / 6</strong> = Off Side
       </p>
 
       <div

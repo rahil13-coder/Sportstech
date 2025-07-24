@@ -76,12 +76,12 @@ background-color: #282c34;
 }
 
 .hero-title1 {
-  font-size: 3rem; /* large title */
+  font-size: 1rem; /* large title */
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   font-weight: 700;
   color: #000000ea; /* white text for dark backgrounds */
-  text-shadow: 2px 2px 8px rgb(0, 0, 0); /* stylish shadow */
+  text-shadow: 2px 2px 8px rgb(255, 252, 252); /* stylish shadow */
   letter-spacing: 2px;
   animation: fadeIn 2s ease-in-out;
 }
@@ -1466,4 +1466,42 @@ body {
 .btn-close-analytica:hover {
   filter: brightness(0.9);
 }
+
+.football{
+font-size: 28px;
+  text-align: center;
+  margin-bottom: 2px;
+  margin-bottom: 12px;
+  font-weight: 900;
+  transition: background-color 0.3s ease; 
+  color: #fdfbfa; 
+  text-shadow: 2px 2px 8px rgb(0, 0, 0); 
+  letter-spacing: 2px;
+  animation: fadeIn 2s ease-in-out;
+  width: fit-content; /* Modern way to auto-size based on content */
+  margin: 0 auto;
+}
+
+.football:hover {
+  color: #ffaa00;  
+}
+
+.tennis{
+font-size: 28px;
+  text-align: center;
+  margin-bottom: 2cqh;
+  font-weight: 900;
+  transition: background-color 0.3s ease; 
+  color: #fdfbfa; 
+  text-shadow: 2px 2px 8px rgb(0, 0, 0); 
+  letter-spacing: 2px;
+  animation: fadeIn 2s ease-in-out;
+  width: fit-content; /* Modern way to auto-size based on content */
+  margin: 0 auto;
+}
+
+.tennis:hover {
+  color: #ffaa00;  
+}
+
 
