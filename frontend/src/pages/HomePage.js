@@ -117,7 +117,7 @@ function HomePage() {
         <div className="container mt-5 homepage-background">
             
             <h1 className="hero-title">Sports Technology Explorer</h1>
-            <h1 className="hero-title1">Before using- LET THE MODEL TO LOAD FIRST</h1>
+            <h6 className="hero-title1">Before using- LET THE MODEL TO LOAD FIRST</h6>
             <h6 className="hero-title1">Works Excellent on Desktop WEBCAM</h6>
             
 
@@ -212,9 +212,9 @@ function HomePage() {
                                 onClick={() => setBallTrackingActive(false)}
                                 style={{
                                     position: 'absolute',
-                                    top: '20px',
-                                    left: '20px',
-                                    padding: '10px 20px',
+                                    top: '8px',
+                                    left: '8px',
+                                    padding: '4px 12px',
                                     backgroundColor: '#ffffffcc',
                                     border: 'none',
                                     borderRadius: '8px',
@@ -259,12 +259,13 @@ function HomePage() {
                                 onClick={() => setSnickoActive(false)}
                                 style={{
                                     position: 'absolute',
-                                    top: '20px',
-                                    left: '20px',
-                                    padding: '10px 20px',
-                                    backgroundColor: '#ffffffcc',
-                                    border: 'none',
-                                    borderRadius: '8px',
+                                    top: '8px',
+                                    left: '8px',
+                                    padding: '4px 8px',
+                                    fontSize: '20px',
+                                    backgroundColor: 'rgba(255, 255, 255, 1)',
+                                    border: '20px',
+                                    borderRadius: '4px',
                                     fontWeight: 'bold',
                                     cursor: 'pointer',
                                     zIndex: 1001,
