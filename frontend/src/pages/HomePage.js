@@ -328,7 +328,7 @@ function HomePage() {
                 <p className="footer-text">© ZAKRU Technologies Pvt. Ltd.</p>
                 <div className="social-icons">
                     <a
-                        href="https://youtube.com/@info1_system3?si=LVWSva_yuNARLLBu"
+                        href="https://youtube.com/@public_0cassion?si=nswULJf9ZyvFmk-m"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="social-link"
