@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
+import { trackClick } from '../utils/trackClick'; // Import trackClick
 
 const SnickoMeter1 = () => {
   const canvasRef = useRef(null);
@@ -19,6 +20,8 @@ const SnickoMeter1 = () => {
 
   // Keep mobile input focused so keyboard stays open
   useEffect(() => {
+    trackClick('page-load-snickometer1-page', 'page-load', window.location.pathname); // Track page load
+
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const interval = setInterval(() => {
       if (isMobile && inputRef.current) {
@@ -229,7 +232,7 @@ const SnickoMeter1 = () => {
             ⏳ Retry in: {countdown}s
           </p>
           <button
-            onClick={() => window.open("https://occasion.ltd/", "_blank")}
+            onClick={(e) => { window.open("https://occasion.ltd/", "_blank"); trackClick('button-snickometer1-play-again', 'button', window.location.pathname); }}
             style={{
               padding: "10px 20px",
               margin: "10px",
@@ -252,8 +255,9 @@ const SnickoMeter1 = () => {
         !ballMoving &&
         !isOut && (
           <button
-            onClick={() => {
+            onClick={(e) => {
               window.dispatchEvent(new KeyboardEvent("keydown", { key: "0" }));
+              trackClick('button-snickometer1-bowl-mobile', 'button', window.location.pathname);
             }}
             style={{
               padding: "10px 20px",

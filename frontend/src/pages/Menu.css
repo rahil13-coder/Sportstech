@@ -1,0 +1,40 @@
+.menu-container {
+  display: flex;
+  flex-direction: row; /* Lay out items horizontally */
+  justify-content: center; /* Center items horizontally */
+  align-items: center; /* Center items vertically */
+  padding: 10px 0; /* Adjust vertical padding, remove horizontal */
+  background-color: #2c3e50; /* Dark blue background */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  width: 100%; /* Make the nav bar span the full width */
+}
+
+.menu-link {
+  text-decoration: none;
+  color: #ecf0f1; /* Light gray text */
+  padding: 8px 15px; /* Adjust padding for a smaller look */
+  margin: 0 10px; /* Add horizontal margin between links */
+  border-radius: 5px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.menu-link:hover {
+  background-color: #34495e; /* Slightly lighter blue on hover */
+  color: #ffffff; /* White text on hover */
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .menu-container {
+    justify-content: flex-start; /* Align items to the start */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    white-space: nowrap; /* Prevent items from wrapping */
+    padding: 10px; /* Adjust padding for mobile */
+  }
+
+  .menu-link {
+    padding: 8px 10px; /* Further reduce padding for smaller screens */
+    margin: 0 5px; /* Further reduce margin */
+    font-size: 0.9em; /* Slightly smaller font size */
+  }
+}

@@ -89,6 +89,9 @@ const upload = multer({
 // Technologies
 app.use('/api/technologies', require('./routes/technologies'));
 
+// Traffic Analytics
+app.use('/api/traffic', require('./routes/traffic'));
+
 // Hawk-Eye Analysis
 app.post('/api/hawkeye/upload', upload.single('video'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No video file uploaded' });

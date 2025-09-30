@@ -1,11 +1,11 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react'; // Add lazy and Suspense
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import axios from 'axios';
 import '../App.css';
-// import SnickoMeter from './SnickoMeter'; // Remove direct import
-// import SnickoMeter1 from './SnickoMeter1'; // Remove direct import
-// import CricketTechnologies from './CricketTechnologies'; // Remove direct import
-// import FootballTechnologies from './FootballTechnologies'; // Remove direct import
-// import TennisTechnologies from './TennisTechnologies'; // Remove direct import
+import Menu from './Menu';
+import Home from './Home';
+import Admin from './Admin';
+import { trackClick } from '../utils/trackClick';
+// import Books from './Books'; // Removed direct import, now lazy loaded
 
 // Lazy load heavy components
 const SnickoMeter = lazy(() => import('./SnickoMeter'));
@@ -13,6 +13,8 @@ const SnickoMeter1 = lazy(() => import('./SnickoMeter1'));
 const CricketTechnologies = lazy(() => import('./CricketTechnologies'));
 const FootballTechnologies = lazy(() => import('./FootballTechnologies'));
 const TennisTechnologies = lazy(() => import('./TennisTechnologies'));
+const Blogs = lazy(() => import('./Blogs'));
+const Books = lazy(() => import('./Books')); // Lazy load the Books component
 
 
 function HomePage() {
@@ -25,13 +27,19 @@ function HomePage() {
     const [hawkEyeError, setHawkEyeError] = useState('');
     const [decisionData, setDecisionData] = useState(null);
     const [snickoActive, setSnickoActive] = useState(false);
-    const [ballTrackingActive, setBallTrackingActive] = useState(false); // ✅ new state
+    const [ballTrackingActive, setBallTrackingActive] = useState(false);
+    const [showHome, setShowHome] = useState(false);
+    const [showAdmin, setShowAdmin] = useState(false);
+    const [showBlogs, setShowBlogs] = useState(false);
+    const [showBooks, setShowBooks] = useState(false); // New state for Books
+    const [showSmartStadiumExperience, setShowSmartStadiumExperience] = useState(false); // New state for Smart Stadium Experience
 
 
     const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 
     useEffect(() => {
+        trackClick('page-load-homepage', 'page-load', window.location.pathname);
         const fetchTechnologies = async () => {
             try {
                 const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/technologies`);
@@ -102,7 +110,7 @@ function HomePage() {
     };
 
 
-    const handleDownloadJSON = () => {
+    const handleDownloadJSON = (e) => {
         if (!decisionData) return;
         const blob = new Blob([JSON.stringify(decisionData, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -110,20 +118,143 @@ function HomePage() {
         link.href = url;
         link.download = 'hawk_eye_analysis.json';
         link.click();
+        trackClick('button-download-json', 'button', window.location.pathname);
+    };
+
+    const toggleHome = (e) => {
+        setShowHome(!showHome);
+        setShowAdmin(false);
+        setShowBlogs(false);
+        setShowBooks(false); // Close Books when Home is opened
+        trackClick('button-toggle-home', 'button', window.location.pathname);
+    };
+
+    const toggleAdmin = (e) => {
+        setShowAdmin(!showAdmin);
+        setShowHome(false);
+        setShowBlogs(false);
+        setShowBooks(false); // Close Books when Admin is opened
+        trackClick('button-toggle-admin', 'button', window.location.pathname);
+    };
+
+    const toggleBlogs = (e) => {
+        setShowBlogs(!showBlogs);
+        setShowHome(false);
+        setShowAdmin(false);
+        setShowBooks(false); // Close Books when Blogs is opened
+        trackClick('button-toggle-blogs', 'button', window.location.pathname);
+    };
+
+    const toggleBooks = (e) => { // New: Function to toggle Books
+        setShowBooks(!showBooks);
+        setShowHome(false);
+        setShowAdmin(false);
+        setShowBlogs(false);
+        trackClick('button-toggle-books', 'button', window.location.pathname);
     };
 
 
     return (
         <div className="container mt-5 homepage-background">
+            <Menu toggleContactBackground={toggleHome} toggleAdmin={toggleAdmin} toggleBlogs={toggleBlogs} toggleBooks={toggleBooks} /> {/* Pass toggleBooks */}
+            {showHome && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    zIndex: 1000,
+                    backgroundImage: `url('/background.jpg')`,
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    overflowY: 'auto',
+                    scrollBehavior: 'smooth'
+                }}>
+                  <Home onBackClick={(e) => { toggleHome(e); trackClick('button-home-back', 'button', window.location.pathname); }} />
+                </div>
+            )}
+            {showAdmin && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    zIndex: 1000,
+                    backgroundImage: `url('/background.jpg')`,
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    overflowY: 'auto',
+                    scrollBehavior: 'smooth'
+                }}>
+                  <Admin onBackClick={(e) => { toggleAdmin(e); trackClick('button-admin-back', 'button', window.location.pathname); }} />
+                </div>
+            )}
+            {showBlogs && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    zIndex: 1000,
+                    backgroundImage: `url('/background.jpg')`,
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    overflowY: 'auto',
+                    scrollBehavior: 'smooth'
+                }}>
+                  <Blogs onBackClick={(e) => { toggleBlogs(e); trackClick('button-blogs-back', 'button', window.location.pathname); }} />
+                </div>
+            )}
+            {showBooks && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    zIndex: 1000,
+                    backgroundImage: `url(${process.env.PUBLIC_URL}/background.jpg)`,
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    overflowY: 'auto',
+                    scrollBehavior: 'smooth'
+                }}>
+                  <Suspense fallback={<div>Loading Books...</div>}> {/* Add Suspense for lazy loaded Books */}
+                    <Books onBackClick={(e) => { toggleBooks(e); trackClick('button-books-back', 'button', window.location.pathname); }} />
+                  </Suspense>
+                </div>
+            )}
             
-            <h1 className="hero-title">Sports Technology Explorer</h1>
-            <h6 className="hero-title1">Before using- LET THE MODEL TO LOAD FIRST</h6>
-            <h6 className="hero-title1">Works Excellent on Desktop WEBCAM</h6>
-            
+            {/* Responsive Hero Section */}
+            <div className="responsive-hero-section">
+                
+                <div className="hero-content-center">
+                    <div className="hero-main-content">
+                        <h1 className="hero-title">Sports Technology Explorer</h1>
+                        <h6 className="hero-tagline">USE THE TECHNOLOGY TO IMPROVE SPORTS SKILLS</h6>
+                        <h6 className="hero-tagline">Works Excellent on Desktop WEBCAM</h6>
+                    </div>
+                    <div className="qr-code-container">
+                        
+                        <div className="qr-code-item">
+                            <img src="/GP.png" alt="QR Code Right" className="hero-qr-code" style={{ width: '150px', height: 'auto' }} />
+                            <h2 className="hero-subtitle right-qr-text">PAY for Charity</h2>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
 
             <section className="hero-title">
                 <h2>Cricket Informatica</h2>
-                <button className="btn btn-warning mb-3" onClick={() => setHawkEyeActive(!hawkEyeActive)}>
+                <button className="btn btn-warning mb-1" onClick={(e) => { setHawkEyeActive(!hawkEyeActive); trackClick('button-cricket-analytics', 'button', window.location.pathname); }}>
                     {hawkEyeActive ? "Close Cricket Analytics" : "Cricket Analytics"}
                 </button>
 
@@ -169,13 +300,13 @@ function HomePage() {
             </section>
             
             {/* Technology Sections */}
-            <section className="mb-5">
-                <h2>Cricket Video Analytics</h2>
+            <section className="mb-3">
+                <h1 style={{ color: 'white' }}>Cricket Video Analytics</h1>
 
 
                 <button
                     className="btn btn-primary mb-3 me-2"
-                    onClick={() => setSnickoActive(!snickoActive)}
+                    onClick={(e) => { setSnickoActive(!snickoActive); trackClick('button-cricket-video-analyzer', 'button', window.location.pathname); }}
                 >
                     {snickoActive ? "Close Cricket Video Analyzer" : "Cricket Video Analyzer"}
                 </button>
@@ -332,6 +463,7 @@ function HomePage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="social-link"
+                        onClick={(e) => trackClick('link-youtube', 'other', window.location.pathname)}
                     >
                         <img
                             src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"
@@ -344,6 +476,7 @@ function HomePage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="social-link"
+                        onClick={(e) => trackClick('link-facebook', 'other', window.location.pathname)}
                     >
                         <img
                             src="https://cdn-icons-png.flaticon.com/512/733/733547.png"

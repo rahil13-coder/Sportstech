@@ -9,6 +9,8 @@ const Cricket3 = lazy(() => import('./pages/cricket3'));
 const SnickoMeter = lazy(() => import('./pages/SnickoMeter'));
 const FootballTechnologies = lazy(() => import('./pages/FootballTechnologies'));
 const TennisTechnologies = lazy(() => import('./pages/TennisTechnologies'));
+const Blogs = lazy(() => import('./pages/Blogs'));
+const Books = lazy(() => import('./pages/Books')); // Lazy load Books component
 
 
 // ✅ Global error handler
@@ -30,9 +32,9 @@ function App() {
         style={{
           backgroundImage: `url(${process.env.PUBLIC_URL}/Cric-stadium.webp)`,
           backgroundSize: "cover",
-  backgroundPosition: "center",
-  backgroundRepeat: "no-repeat",
-  imageRendering: "auto",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          imageRendering: "auto",
         }}
       >
         {/* ✅ Suspense fallback to show while route loads */}
@@ -46,6 +48,8 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/fantasy" element={<Cricket3 />} />
+            <Route path="/blogs" element={<Blogs />} />
+            {/* The Books route will be handled within HomePage.js now */}
           </Routes>
         </Suspense>
       </div>

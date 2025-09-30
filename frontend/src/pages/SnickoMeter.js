@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
+import { trackClick } from '../utils/trackClick'; // Import trackClick
 
 // Utility to wait for global JS libraries (like tf, poseDetection)
 const waitForGlobal = (prop, timeout = 10000) =>
@@ -38,6 +39,8 @@ export default function FootballTechnologies() {
   const [videoLoaded, setVideoLoaded] = useState(false);
 
   useEffect(() => {
+    trackClick('page-load-snickometer-page', 'page-load', window.location.pathname); // Track page load
+
     if (!showAnalytica) return;
 
     const loadModels = async () => {
@@ -261,7 +264,7 @@ export default function FootballTechnologies() {
       <div style={{ display: "flex", flexDirection: "column", gap: "10px",alignItems: "center", }}>
         <button
           className="btn-view-technologies"
-          onClick={() => setShowTechnologies(true)}
+          onClick={(e) => { setShowTechnologies(true); trackClick('button-view-cricket-technologies-snicko', 'button', window.location.pathname); }}
           style={{
             padding: "12px 20px",
             fontSize: "16px",
@@ -296,7 +299,7 @@ export default function FootballTechnologies() {
           }}
         >
           <button
-            onClick={() => setShowTechnologies(false)}
+            onClick={(e) => { setShowTechnologies(false); trackClick('button-snickometer-back', 'button', window.location.pathname); }}
             style={{
               position: "absolute",
               top: "10px",
@@ -317,7 +320,7 @@ export default function FootballTechnologies() {
           <div style={{ marginTop: 10 }}>
             <button
               className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
-              onClick={() => setShowAnalytica(prev => !prev)}
+              onClick={(e) => { setShowAnalytica(prev => !prev); trackClick('button-snickometer-analytica-toggle', 'button', window.location.pathname); }}
               style={{ marginBottom:  10, fontSize: "17px", padding: "8px 14px", borderRadius: "6px"}}
             >
               {showAnalytica ? "Close" : "Cricket Analytica"}
@@ -339,7 +342,7 @@ export default function FootballTechnologies() {
 
                   <button
                     className="btn-use-webcam1"
-                    onClick={handleWebcam}
+                    onClick={(e) => { handleWebcam(e); trackClick('button-snickometer-use-webcam', 'button', window.location.pathname); }}
                     style={{ marginLeft: 10 }}
                   >
                     Use Webcam
