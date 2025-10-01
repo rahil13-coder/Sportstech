@@ -12,6 +12,7 @@ const Books = ({ onBackClick, isAdminMode }) => {
       fontFamily: 'Arial, sans-serif',
       padding: '5vh 0',
       gap: '30px',
+      position: 'relative', // Needed for absolute positioning of back button
     },
     title: {
         fontSize: '3em',
@@ -121,7 +122,24 @@ const Books = ({ onBackClick, isAdminMode }) => {
         fontSize: '1.2em',
         fontWeight: 'bold',
         color: '#555',
-    }
+    },
+    backButton: {
+      position: 'absolute',
+      top: '20px',
+      left: '20px',
+      padding: '10px 15px',
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      color: 'white',
+      border: 'none',
+      borderRadius: '5px',
+      cursor: 'pointer',
+      fontSize: '1em',
+      zIndex: 10,
+      transition: 'background-color 0.3s ease',
+    },
+    backButtonHover: {
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    },
   };
 
   const openLink = (url) => {
@@ -137,9 +155,18 @@ const Books = ({ onBackClick, isAdminMode }) => {
   const [isMagazinesHovered, setIsMagazinesHovered] = React.useState(false);
   const [isWebnovelsHovered, setIsWebnovelsHovered] = React.useState(false);
   const [isLatestReleaseHovered, setIsLatestReleaseHovered] = React.useState(false);
+  const [isBackHovered, setIsBackHovered] = React.useState(false);
 
   return (
     <div style={styles.container}>
+      <button
+        onClick={onBackClick}
+        style={{ ...styles.backButton, ...(isBackHovered ? styles.backButtonHover : {}) }}
+        onMouseEnter={() => setIsBackHovered(true)}
+        onMouseLeave={() => setIsBackHovered(false)}
+      >
+        ← Back
+      </button>
       <h1 style={styles.title}>Welcome To Books Infinity</h1>
       <div style={styles.buttonContainer}>
         <button
