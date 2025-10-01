@@ -24,6 +24,7 @@
     "react": "^18.2.0",
     "react-apexcharts": "^1.7.0",
     "react-dom": "^18.2.0",
+    "react-quill": "^2.0.0",
     "react-router-dom": "^7.6.3",
     "react-scripts": "5.0.1",
     "recharts": "^3.0.2",
@@ -41,9 +42,9 @@
       "react-app/jest"
     ],
     "globals": {
-    "cv": "readonly"
-  }
-},
+      "cv": "readonly"
+    }
+  },
   "browserslist": {
     "production": [
       ">0.2%",
