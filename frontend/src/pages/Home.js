@@ -20,7 +20,7 @@ const Home = ({ onBackClick }) => {
         </div>
 
         <header className="home-header">
-          <h1>Revolutionizing Sports with Technology</h1>
+          <h1>Sports Explorer</h1>
           <p className="home-summary" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', padding: '20px', borderRadius: '8px', border: '1px solid #ccc' }}>
             Our platform explores the cutting-edge technology that is transforming the world of sports. We delve into how innovations in data analysis, biomechanics, and broadcasting are enhancing the experience for fans, players, and coaches in sports like Cricket, Football, Tennis, and Basketball.
           </p>

@@ -1,0 +1,13 @@
+/* Games.css */
+.games-container {
+    /* Add any specific styles for the games container here */
+}
+
+/* Styles for game selection buttons */
+.games-container button {
+    transition: background-color 0.3s ease;
+}
+
+.games-container button:hover {
+    opacity: 0.9;
+}

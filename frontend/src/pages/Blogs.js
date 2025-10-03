@@ -197,11 +197,13 @@ const Blogs = ({ onBackClick }) => {
     trackClick(`button-blogs-update-submit-${editingBlogId}`, 'button', window.location.pathname); // Track click
   };
 
-  const blogCategories = ['Sports', 'Politics', 'GeoPolitics', 'Entertainment', 'Technology', 'Agriculture', 'Horticulture', 'Dance', 'Songs'];
+  const blogCategories = ['Sports', 'Politics', 'GeoPolitics', 'Entertainment', 'Technology', 'Agriculture', 'Horticulture', 'Education', 'Songs'];
 
   return (
     <div className="blogs-container" style={{ backgroundImage: 'url("/background.jpg")', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', minHeight: '100vh', color: 'white', padding: '20px' }}>
       <button onClick={(e) => { onBackClick(e); trackClick('button-blogs-back-top', 'button', window.location.pathname); }} style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1, backgroundColor: 'skyblue' }}>Back</button>
+
+      
 
       {!choice ? (
         // Initial choice screen
@@ -298,7 +300,21 @@ const Blogs = ({ onBackClick }) => {
           </div>
         ) : (
           // Account Setup/Login for Blog Creation
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', textAlign: 'center', backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: '20px', borderRadius: '8px' }}>
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', textAlign: 'center', backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: '20px', borderRadius: '8px' }}>
+            <div style={{
+              position: 'absolute',
+              left: '0',
+              top: '60%',
+              transform: 'translateY(-50%)', // Centers vertically
+              textAlign: 'center',
+              zIndex: 10,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              padding: '20px',
+              borderRadius: '10px',
+            }}>
+              <img src={process.env.PUBLIC_URL + '/GP.png'} alt="Payment Gateway" style={{ maxWidth: '150px', display: 'block', margin: '0 auto' }} />
+              <p style={{ color: 'lightgreen', fontSize: '1.5em', marginTop: '10px' }}>PAY for Charity</p>
+            </div>
             {message && <p style={{ color: 'yellow', marginBottom: '10px' }}>{message}</p>}
 
             {showSetup ? (
@@ -363,6 +379,8 @@ const Blogs = ({ onBackClick }) => {
         // View Blogs section
         <div style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: '20px', borderRadius: '8px', maxWidth: '800px', margin: '50px auto', textAlign: 'center' }}>
           <h2 style={{ marginBottom: '20px' }}>View Blogs ({blogs.length} Total)</h2>
+
+          
 
           {message && <p style={{ color: 'yellow', marginBottom: '10px' }}>{message}</p>}
 

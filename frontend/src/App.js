@@ -11,6 +11,7 @@ const FootballTechnologies = lazy(() => import('./pages/FootballTechnologies'));
 const TennisTechnologies = lazy(() => import('./pages/TennisTechnologies'));
 const Blogs = lazy(() => import('./pages/Blogs'));
 const Books = lazy(() => import('./pages/Books')); // Lazy load Books component
+const Rental = lazy(() => import('./pages/Rental')); // Lazy load Rental component
 
 
 // ✅ Global error handler
@@ -48,7 +49,8 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/fantasy" element={<Cricket3 />} />
-            <Route path="/blogs" element={<Blogs />} />
+            
+            <Route path="/rental" element={<Rental />} /> {/* New route for Rental component */}
             {/* The Books route will be handled within HomePage.js now */}
           </Routes>
         </Suspense>

@@ -5,6 +5,8 @@ import Menu from './Menu';
 import Home from './Home';
 import Admin from './Admin';
 import { trackClick } from '../utils/trackClick';
+import Contact from './contact';
+import JobPortal from './JobPortal'; // Import the JobPortal component
 // import Books from './Books'; // Removed direct import, now lazy loaded
 
 // Lazy load heavy components
@@ -15,6 +17,7 @@ const FootballTechnologies = lazy(() => import('./FootballTechnologies'));
 const TennisTechnologies = lazy(() => import('./TennisTechnologies'));
 const Blogs = lazy(() => import('./Blogs'));
 const Books = lazy(() => import('./Books')); // Lazy load the Books component
+const Games = lazy(() => import('./Games')); // Lazy load the Games component
 
 
 function HomePage() {
@@ -32,7 +35,10 @@ function HomePage() {
     const [showAdmin, setShowAdmin] = useState(false);
     const [showBlogs, setShowBlogs] = useState(false);
     const [showBooks, setShowBooks] = useState(false); // New state for Books
+    const [showGames, setShowGames] = useState(false); // New state for Games
     const [showSmartStadiumExperience, setShowSmartStadiumExperience] = useState(false); // New state for Smart Stadium Experience
+    const [showContact, setShowContact] = useState(false); // New state for Contact page
+    const [showJobs, setShowJobs] = useState(false); // New state for Job Portal page
 
 
     const baseURL = process.env.REACT_APP_API_BASE_URL;
@@ -134,6 +140,9 @@ function HomePage() {
         setShowHome(false);
         setShowBlogs(false);
         setShowBooks(false); // Close Books when Admin is opened
+        setShowGames(false);
+        setShowContact(false);
+        setShowJobs(false);
         trackClick('button-toggle-admin', 'button', window.location.pathname);
     };
 
@@ -142,6 +151,9 @@ function HomePage() {
         setShowHome(false);
         setShowAdmin(false);
         setShowBooks(false); // Close Books when Blogs is opened
+        setShowGames(false);
+        setShowContact(false);
+        setShowJobs(false);
         trackClick('button-toggle-blogs', 'button', window.location.pathname);
     };
 
@@ -150,13 +162,49 @@ function HomePage() {
         setShowHome(false);
         setShowAdmin(false);
         setShowBlogs(false);
+        setShowGames(false);
+        setShowContact(false);
+        setShowJobs(false);
         trackClick('button-toggle-books', 'button', window.location.pathname);
+    };
+
+    const toggleGames = (e) => { // New: Function to toggle Games
+        setShowGames(!showGames);
+        setShowHome(false);
+        setShowAdmin(false);
+        setShowBlogs(false);
+        setShowBooks(false); // Close Books when Games is opened
+        setShowContact(false);
+        setShowJobs(false);
+        trackClick('button-toggle-games', 'button', window.location.pathname);
+    };
+
+    const toggleContact = (e) => {
+        setShowContact(!showContact);
+        setShowHome(false);
+        setShowAdmin(false);
+        setShowBlogs(false);
+        setShowBooks(false);
+        setShowGames(false);
+        setShowJobs(false);
+        trackClick('button-toggle-contact', 'button', window.location.pathname);
+    };
+
+    const toggleJobs = (e) => {
+        setShowJobs(!showJobs);
+        setShowHome(false);
+        setShowAdmin(false);
+        setShowBlogs(false);
+        setShowBooks(false);
+        setShowGames(false);
+        setShowContact(false);
+        trackClick('button-toggle-jobs', 'button', window.location.pathname);
     };
 
 
     return (
         <div className="container mt-5 homepage-background">
-            <Menu toggleContactBackground={toggleHome} toggleAdmin={toggleAdmin} toggleBlogs={toggleBlogs} toggleBooks={toggleBooks} /> {/* Pass toggleBooks */}
+            <Menu toggleHome={toggleHome} toggleAdmin={toggleAdmin} toggleBlogs={toggleBlogs} toggleBooks={toggleBooks} toggleGames={toggleGames} toggleContact={toggleContact} toggleJobs={toggleJobs} /> {/* Pass toggleJobs */}
             {showHome && (
                 <div style={{
                     position: 'fixed',
@@ -229,6 +277,64 @@ function HomePage() {
                   <Suspense fallback={<div>Loading Books...</div>}> {/* Add Suspense for lazy loaded Books */}
                     <Books onBackClick={(e) => { toggleBooks(e); trackClick('button-books-back', 'button', window.location.pathname); }} />
                   </Suspense>
+                </div>
+            )}
+            {showGames && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    zIndex: 1000,
+                    backgroundImage: `url('/background.jpg')`,
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    overflowY: 'auto',
+                    scrollBehavior: 'smooth'
+                }}>
+                  <Suspense fallback={<div>Loading Games...</div>}>
+                    <Games onBackClick={(e) => { toggleGames(e); trackClick('button-games-back', 'button', window.location.pathname); }} />
+                  </Suspense>
+                </div>
+            )}
+
+            {showContact && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    zIndex: 1000,
+                    backgroundImage: `url('/background.jpg')`,
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    overflowY: 'auto',
+                    scrollBehavior: 'smooth'
+                }}>
+                  <Contact isAdminMode={false} onBackClick={(e) => { toggleContact(e); trackClick('button-contact-back', 'button', window.location.pathname); }} />
+                </div>
+            )}
+            
+            {showJobs && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    zIndex: 1000,
+                    backgroundImage: `url('/background.jpg')`,
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    overflowY: 'auto',
+                    scrollBehavior: 'smooth'
+                }}>
+                  <JobPortal onBackClick={(e) => { toggleJobs(e); trackClick('button-jobs-back', 'button', window.location.pathname); }} />
                 </div>
             )}
             
