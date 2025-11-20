@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { trackClick } from '../utils/trackClick'; // Import trackClick
 
-
 // Utility to wait for global JS libraries (like tf, poseDetection)
 const waitForGlobal = (prop, timeout = 10000) =>
   new Promise((resolve, reject) => {
@@ -22,17 +21,19 @@ const COLORS = {
   skeleton: "cyan",
 };
 
-export default function TennisTechnologies() {
+export default function TennisTechnologies({ onBackClick }) {
   const [showTechnologies, setShowTechnologies] = useState(false);
   const [showAnalytica, setShowAnalytica] = useState(false);
   const [useWebcam, setUseWebcam] = useState(false);
   const [showResultScreen, setShowResultScreen] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState(null);
-  const [facingMode, setFacingMode] = useState("user"); // "user" = front, "environment" = back
+  const [facingMode, setFacingMode] = useState("user");
+  const [isWebcamHovered, setIsWebcamHovered] = useState(false);
+  const [isAnalyticaHovered, setIsAnalyticaHovered] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const intervalRef = useRef(null);
+  const animationRef = useRef(null);
 
   const [log, setLog] = useState([]);
   const [objectModel, setObjectModel] = useState(null);
@@ -40,8 +41,7 @@ export default function TennisTechnologies() {
   const [videoLoaded, setVideoLoaded] = useState(false);
 
   useEffect(() => {
-    trackClick('page-load-tennis-technologies-page', 'page-load', window.location.pathname); // Track page load
-
+    trackClick('page-load-football-technologies-page', 'page-load', window.location.pathname); // Track page load
     if (!showAnalytica) return;
 
     const loadModels = async () => {
@@ -72,9 +72,7 @@ export default function TennisTechnologies() {
     };
 
     loadModels();
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
+    return () => cancelAnimationFrame(animationRef.current);
   }, [showAnalytica]);
 
   useEffect(() => {
@@ -86,12 +84,7 @@ export default function TennisTechnologies() {
     video.onloadedmetadata = () => {
       setVideoLoaded(true);
       video.play().catch(err => console.error("Video play error:", err));
-
-      intervalRef.current = setInterval(() => {
-        if (!video.paused && !video.ended && objectModel && poseDetector) {
-          processFrame();
-        }
-      }, 100);
+      startFrameLoop();
     };
 
     video.onerror = () => {
@@ -102,12 +95,30 @@ export default function TennisTechnologies() {
     return () => URL.revokeObjectURL(video.src);
   }, [pendingVideoFile, objectModel, poseDetector]);
 
+  const startFrameLoop = () => {
+    const loop = async () => {
+      const video = videoRef.current;
+      if (
+        video &&
+        !video.paused &&
+        !video.ended &&
+        objectModel &&
+        poseDetector
+      ) {
+        await processFrame();
+      }
+      animationRef.current = requestAnimationFrame(loop);
+    };
+    animationRef.current = requestAnimationFrame(loop);
+  };
+
   const processFrame = async () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas || !objectModel || !poseDetector) return;
 
     const ctx = canvas.getContext("2d");
+
     if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -116,10 +127,17 @@ export default function TennisTechnologies() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+    // Mobile fix: draw video to temp canvas for pose detection
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
     try {
       const predictions = await objectModel.detect(canvas);
       const persons = predictions.filter(p => p.class === "person" && p.score >= 0.5);
-      const poses = await poseDetector.estimatePoses(canvas);
+      const poses = await poseDetector.estimatePoses(tempCanvas);
 
       if (persons.length === 0) {
         setLog(prev => [...prev.slice(-50), `⚠️ No players detected at ${video.currentTime.toFixed(2)}s`]);
@@ -240,19 +258,18 @@ export default function TennisTechnologies() {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-  video: { facingMode }, // "user" = front, "environment" = back
-});
+        video: {
+          facingMode,
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        }
+      });
       const video = videoRef.current;
       video.srcObject = stream;
       video.onloadedmetadata = () => {
         video.play();
         setVideoLoaded(true);
-
-        intervalRef.current = setInterval(() => {
-          if (!video.paused && objectModel && poseDetector) {
-            processFrame();
-          }
-        }, 100);
+        startFrameLoop();
       };
     } catch (err) {
       console.error("Webcam error:", err);
@@ -261,10 +278,29 @@ export default function TennisTechnologies() {
   };
 
   return (
-    <section style={{ padding: "1px" }}>
-      <h2 className="tennis"  > TENNIS TECHNOLOGIES </h2>
+    <section style={{ padding: "20px", textAlign: 'center' }}>
+      {onBackClick && (
+        <button
+          onClick={onBackClick}
+          style={{
+            position: "absolute",
+            top: "20px",
+            left: "80px",
+            padding: "10px 20px",
+            backgroundColor: "#ffffffcc",
+            border: "none",
+            borderRadius: "8px",
+            fontWeight: "bold",
+            cursor: "pointer",
+            zIndex: 10000,
+          }}
+        >
+          ← Back
+        </button>
+      )}
+      <h2 className= "tennis"style={{ marginBottom: "12px" }}> TENNIS TECHNOLOGIES </h2>
 
-      <button className="btn-view-technologies" onClick={(e) => { setShowTechnologies(true); trackClick('button-view-tennis-technologies', 'button', window.location.pathname); }} style={{ marginBottom: 10 }}>
+      <button className="btn-view-technologies" onClick={(e) => { setShowTechnologies(true); trackClick('button-view-tennis-technologies', 'button', window.location.pathname); }} style={{ marginBottom: "10px", backgroundColor: "#007bff", color: "white" }}>
         View Tennis Technologies
       </button>
 
@@ -290,7 +326,7 @@ export default function TennisTechnologies() {
             style={{
               position: "absolute",
               top: "20px",
-              left: "20px",
+              left: "80px",
               padding: "10px 20px",
               backgroundColor: "#ffffffcc",
               border: "none",
@@ -304,34 +340,55 @@ export default function TennisTechnologies() {
           </button>
 
           <div>
-            <button  className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
-            onClick={(e) => { setShowAnalytica(prev => !prev); trackClick('button-tennis-analytica-toggle', 'button', window.location.pathname); }} style={{ marginBottom: 10 }}>
-              {showAnalytica ? "Close" : "Tennis Analytica"}
+            <button
+              className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
+              onClick={(e) => { setShowAnalytica(prev => !prev); trackClick('button-tennis-analytica-toggle', 'button', window.location.pathname); }}
+              onMouseEnter={() => setIsAnalyticaHovered(true)}
+              onMouseLeave={() => setIsAnalyticaHovered(false)}
+              style={{
+                marginBottom: 10,
+                backgroundColor: isAnalyticaHovered ? '#007bff' : 'orange',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '5px',
+                cursor: 'pointer'
+              }}
+            >
+              {showAnalytica ? "Close " : "Tennis Analytica"}
             </button>
 
             {showAnalytica && (
               <>
                 <div style={{ marginBottom: 10 }}>
-  <input type="file" accept="video/*" onChange={handleUpload} />
-  
-  <select
-    value={facingMode}
-    onChange={e => setFacingMode(e.target.value)}
-    style={{ marginLeft: 10, padding: "5px", borderRadius: "5px" }}
-  >
-    <option value="user">Front Camera</option>
-    <option value="environment">Back Camera</option>
-  </select>
+                  <input type="file" accept="video/*" onChange={handleUpload} />
+                  <select
+                    value={facingMode}
+                    onChange={e => setFacingMode(e.target.value)}
+                    style={{ marginLeft: 10, padding: "5px", borderRadius: "5px" }}
+                  >
+                    <option value="user">Front Camera</option>
+                    <option value="environment">Back Camera</option>
+                  </select>
 
-  <button
-    className="btn-use-webcam1"
-    onClick={(e) => { handleWebcam(e); trackClick('button-tennis-analytica-use-webcam', 'button', window.location.pathname); }}
-    style={{ marginLeft: 10 }}
-  >
-    Use Webcam
-  </button>
-</div>
-
+                  <button
+                    className="btn-use-webcam1"
+                    onClick={(e) => { handleWebcam(e); trackClick('button-tennis-analytica-use-webcam', 'button', window.location.pathname); }}
+                    onMouseEnter={() => setIsWebcamHovered(true)}
+                    onMouseLeave={() => setIsWebcamHovered(false)}
+                    style={{
+                      marginLeft: 10,
+                      backgroundColor: isWebcamHovered ? '#007bff' : 'orange',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 15px',
+                      borderRadius: '5px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Use Webcam
+                  </button>
+                </div>
 
                 {showResultScreen && (
                   <div style={{ position: "relative" }}>
@@ -378,7 +435,7 @@ export default function TennisTechnologies() {
                   {log.length > 0 ? (
                     log.map((msg, i) => <div key={i}>{msg}</div>)
                   ) : (
-                    <div>No data yet. Upload a football video or use webcam to start analysis.</div>
+                    <div>No data yet. Upload a tennis video or use webcam to start analysis.</div>
                   )}
                 </div>
               </>

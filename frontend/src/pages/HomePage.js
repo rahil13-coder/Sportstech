@@ -7,18 +7,13 @@ import Admin from './Admin';
 import { trackClick } from '../utils/trackClick';
 import Contact from './contact';
 import JobPortal from './JobPortal'; // Import the JobPortal component
-// import Books from './Books'; // Removed direct import, now lazy loaded
 
-// Lazy load heavy components
-const SnickoMeter = lazy(() => import('./SnickoMeter'));
-const SnickoMeter1 = lazy(() => import('./SnickoMeter1'));
 const CricketTechnologies = lazy(() => import('./CricketTechnologies'));
 const FootballTechnologies = lazy(() => import('./FootballTechnologies'));
 const TennisTechnologies = lazy(() => import('./TennisTechnologies'));
 const Blogs = lazy(() => import('./Blogs'));
-const Books = lazy(() => import('./Books')); // Lazy load the Books component
-const Games = lazy(() => import('./Games')); // Lazy load the Games component
-
+const Books = lazy(() => import('./Books'));
+const Games = lazy(() => import('./Games'));
 
 function HomePage() {
     const [technologies, setTechnologies] = useState([]);
@@ -29,20 +24,17 @@ function HomePage() {
     const [processing, setProcessing] = useState(false);
     const [hawkEyeError, setHawkEyeError] = useState('');
     const [decisionData, setDecisionData] = useState(null);
-    const [snickoActive, setSnickoActive] = useState(false);
-    const [ballTrackingActive, setBallTrackingActive] = useState(false);
     const [showHome, setShowHome] = useState(false);
     const [showAdmin, setShowAdmin] = useState(false);
     const [showBlogs, setShowBlogs] = useState(false);
-    const [showBooks, setShowBooks] = useState(false); // New state for Books
-    const [showGames, setShowGames] = useState(false); // New state for Games
-    const [showSmartStadiumExperience, setShowSmartStadiumExperience] = useState(false); // New state for Smart Stadium Experience
-    const [showContact, setShowContact] = useState(false); // New state for Contact page
-    const [showJobs, setShowJobs] = useState(false); // New state for Job Portal page
-
+    const [showBooks, setShowBooks] = useState(false);
+    const [showGames, setShowGames] = useState(false);
+    const [showSmartStadiumExperience, setShowSmartStadiumExperience] = useState(false);
+    const [showContact, setShowContact] = useState(false);
+    const [showJobs, setShowJobs] = useState(false);
+    const [isCricketHovered, setIsCricketHovered] = useState(false);
 
     const baseURL = process.env.REACT_APP_API_BASE_URL;
-
 
     useEffect(() => {
         trackClick('page-load-homepage', 'page-load', window.location.pathname);
@@ -203,155 +195,40 @@ function HomePage() {
 
 
     return (
-        <div className="container mt-5 homepage-background">
+        <div className="container homepage-background">
             <Menu toggleHome={toggleHome} toggleAdmin={toggleAdmin} toggleBlogs={toggleBlogs} toggleBooks={toggleBooks} toggleGames={toggleGames} toggleContact={toggleContact} toggleJobs={toggleJobs} /> {/* Pass toggleJobs */}
-            {showHome && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    zIndex: 1000,
-                    backgroundImage: `url('/background.jpg')`,
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    overflowY: 'auto',
-                    scrollBehavior: 'smooth'
-                }}>
-                  <Home onBackClick={(e) => { toggleHome(e); trackClick('button-home-back', 'button', window.location.pathname); }} />
-                </div>
-            )}
-            {showAdmin && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    zIndex: 1000,
-                    backgroundImage: `url('/background.jpg')`,
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    overflowY: 'auto',
-                    scrollBehavior: 'smooth'
-                }}>
-                  <Admin onBackClick={(e) => { toggleAdmin(e); trackClick('button-admin-back', 'button', window.location.pathname); }} />
-                </div>
-            )}
-            {showBlogs && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    zIndex: 1000,
-                    backgroundImage: `url('/background.jpg')`,
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    overflowY: 'auto',
-                    scrollBehavior: 'smooth'
-                }}>
-                  <Blogs onBackClick={(e) => { toggleBlogs(e); trackClick('button-blogs-back', 'button', window.location.pathname); }} />
-                </div>
-            )}
+            {showHome && <Home onBackClick={(e) => { toggleHome(e); trackClick('button-home-back', 'button', window.location.pathname); }} />}
+            {showAdmin && <Admin onBackClick={(e) => { toggleAdmin(e); trackClick('button-admin-back', 'button', window.location.pathname); }} />}
+            {showBlogs && <Blogs onBackClick={(e) => { toggleBlogs(e); trackClick('button-blogs-back', 'button', window.location.pathname); }} />}
             {showBooks && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    zIndex: 1000,
-                    backgroundImage: `url(${process.env.PUBLIC_URL}/background.jpg)`,
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    overflowY: 'auto',
-                    scrollBehavior: 'smooth'
-                }}>
-                  <Suspense fallback={<div>Loading Books...</div>}> {/* Add Suspense for lazy loaded Books */}
+                <Suspense fallback={<div>Loading Books...</div>}> {/* Add Suspense for lazy loaded Books */}
                     <Books onBackClick={(e) => { toggleBooks(e); trackClick('button-books-back', 'button', window.location.pathname); }} />
-                  </Suspense>
-                </div>
+                </Suspense>
             )}
             {showGames && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    zIndex: 1000,
-                    backgroundImage: `url('/background.jpg')`,
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    overflowY: 'auto',
-                    scrollBehavior: 'smooth'
-                }}>
-                  <Suspense fallback={<div>Loading Games...</div>}>
+                <Suspense fallback={<div>Loading Games...</div>}>
                     <Games onBackClick={(e) => { toggleGames(e); trackClick('button-games-back', 'button', window.location.pathname); }} />
-                  </Suspense>
-                </div>
+                </Suspense>
             )}
 
-            {showContact && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    zIndex: 1000,
-                    backgroundImage: `url('/background.jpg')`,
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    overflowY: 'auto',
-                    scrollBehavior: 'smooth'
-                }}>
-                  <Contact isAdminMode={false} onBackClick={(e) => { toggleContact(e); trackClick('button-contact-back', 'button', window.location.pathname); }} />
-                </div>
-            )}
+            {showContact && <Contact isAdminMode={false} onBackClick={(e) => { toggleContact(e); trackClick('button-contact-back', 'button', window.location.pathname); }} />}
             
-            {showJobs && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    zIndex: 1000,
-                    backgroundImage: `url('/background.jpg')`,
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    overflowY: 'auto',
-                    scrollBehavior: 'smooth'
-                }}>
-                  <JobPortal onBackClick={(e) => { toggleJobs(e); trackClick('button-jobs-back', 'button', window.location.pathname); }} />
-                </div>
-            )}
+            {showJobs && <JobPortal onBackClick={(e) => { toggleJobs(e); trackClick('button-jobs-back', 'button', window.location.pathname); }} />}
             
             {/* Responsive Hero Section */}
             <div className="responsive-hero-section">
                 
                 <div className="hero-content-center">
-                    <div className="hero-main-content">
+                    <div className="hero-main-content" style={{ textAlign: 'center' }}>
                         <h1 className="hero-title">Sports Technology Explorer</h1>
                         <h6 className="hero-tagline">USE THE TECHNOLOGY TO IMPROVE SPORTS SKILLS</h6>
                         <h6 className="hero-tagline">Works Excellent on Desktop WEBCAM</h6>
                     </div>
                     <div className="qr-code-container">
                         
-                        <div className="qr-code-item">
+                        <div className="qr-code-item" style={{ textAlign: 'center' }}>
                             <img src="/GP.png" alt="QR Code Right" className="hero-qr-code" style={{ width: '150px', height: 'auto' }} />
-                            <h2 className="hero-subtitle right-qr-text">PAY for Charity</h2>
+                            <h2 className="hero-subtitle right-qr-text" style={{ color: 'white' }}>PAY for Charity</h2>
                         </div>
                     </div>
                 </div>
@@ -359,10 +236,26 @@ function HomePage() {
             </div>
 
             <section className="hero-title">
-                <h2>Cricket Informatica</h2>
-                <button className="btn btn-warning mb-1" onClick={(e) => { setHawkEyeActive(!hawkEyeActive); trackClick('button-cricket-analytics', 'button', window.location.pathname); }}>
-                    {hawkEyeActive ? "Close Cricket Analytics" : "Cricket Analytics"}
-                </button>
+                <h2 style={{ textAlign: 'center', color: 'white' }}>Cricket Informatica</h2>
+                <div style={{ textAlign: 'center' }}>
+                    <button
+                        className="mb-1"
+                        onClick={(e) => { setHawkEyeActive(!hawkEyeActive); trackClick('button-cricket-analytics', 'button', window.location.pathname); }}
+                        onMouseEnter={() => setIsCricketHovered(true)}
+                        onMouseLeave={() => setIsCricketHovered(false)}
+                        style={{
+                            backgroundColor: isCricketHovered ? '#007bff' : 'orange',
+                            color: 'white',
+                            border: 'none',
+                            padding: '.375rem .75rem',
+                            fontSize: '1rem',
+                            borderRadius: '.25rem',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        {hawkEyeActive ? "Close Cricket Analytics" : "Cricket Analytics"}
+                    </button>
+                </div>
 
 
                 {hawkEyeActive && (
@@ -395,9 +288,11 @@ function HomePage() {
                                     <p><strong>Batter Hit Speed:</strong> {decisionData.batterHitSpeed}</p>
 
 
-                                    <button onClick={handleDownloadJSON} className="btn btn-success mt-3">
-                                        📥 Download JSON Report
-                                    </button>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <button onClick={handleDownloadJSON} className="btn btn-success mt-3">
+                                            📥 Download JSON Report
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -405,120 +300,6 @@ function HomePage() {
                 )}
             </section>
             
-            {/* Technology Sections */}
-            <section className="mb-3">
-                <h1 style={{ color: 'white' }}>Cricket Video Analytics</h1>
-
-
-                <button
-                    className="btn btn-primary mb-3 me-2"
-                    onClick={(e) => { setSnickoActive(!snickoActive); trackClick('button-cricket-video-analyzer', 'button', window.location.pathname); }}
-                >
-                    {snickoActive ? "Close Cricket Video Analyzer" : "Cricket Video Analyzer"}
-                </button>
-
-
-                <button
-                    className="btn btn-secondary mb-3"
-                    onClick={() => setBallTrackingActive(!ballTrackingActive)}
-                >
-                    {ballTrackingActive ? "Close Ball Tracking" : "Ball Tracking"}
-                </button>
-
-
-                {ballTrackingActive && (
-                    <Suspense fallback={<div>Loading Ball Tracking...</div>}>
-                        <div
-                            className="ball-tracking-wrapper"
-                            style={{
-                                position: 'fixed',
-                                top: 0,
-                                left: 0,
-                                width: '100vw',
-                                height: '100vh',
-                                backgroundColor: '#000000ee',
-                                zIndex: 999,
-                                overflowY: 'auto',
-                                padding: '20px',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                            }}
-                        >
-                            <button
-                                onClick={() => setBallTrackingActive(false)}
-                                style={{
-                                    position: 'absolute',
-                                    top: '8px',
-                                    left: '8px',
-                                    padding: '4px 12px',
-                                    backgroundColor: '#ffffffcc',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer',
-                                    zIndex: 1001,
-                                }}
-                            >
-                                ← Back
-                            </button>
-
-
-                            <div style={{ width: '80%', maxWidth: '800px' }}>
-                                <SnickoMeter1 />
-                            </div>
-                        </div>
-                    </Suspense>
-                )}
-
-
-                {snickoActive && (
-                    <Suspense fallback={<div>Loading Cricket Video Analyzer...</div>}>
-                        <div
-                            className="snicko-background-wrapper"
-                            style={{
-                                position: 'fixed',
-                                top: 0,
-                                left: 0,
-                                width: '100vw',
-                                height: '100vh',
-                                zIndex: 1000,
-                                backgroundImage: `url('/background.jpg')`,
-                                backgroundSize: 'cover',
-                                backgroundRepeat: 'no-repeat',
-                                backgroundPosition: 'center',
-                                padding: '20px',
-                                overflowY: 'auto',
-                            }}
-                        >
-                            {/* Back Button */}
-                            <button
-                                onClick={() => setSnickoActive(false)}
-                                style={{
-                                    position: 'absolute',
-                                    top: '8px',
-                                    left: '8px',
-                                    padding: '4px 8px',
-                                    fontSize: '20px',
-                                    backgroundColor: 'rgba(255, 255, 255, 1)',
-                                    border: '20px',
-                                    borderRadius: '4px',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer',
-                                    zIndex: 1001,
-                                }}
-                            >
-                                ← Back
-                            </button>
-                            {/* SnickoMeter Content */}
-                            <SnickoMeter />
-                        </div>
-                    </Suspense>
-                )}
-
-            </section> 
-
-
             <Suspense fallback={<div>Loading Cricket Technologies...</div>}>
                 <CricketTechnologies cricketTech={cricketTech} />
             </Suspense>
@@ -535,9 +316,6 @@ function HomePage() {
                 //{ title: "Tennis Technologies", data: tennisTech },   // These are already being lazy-loaded above
                 //{ title: "General Sports Technologies", data: generalTech }
             ].map(({ title, data }) => (
-                // Existing card-rendering logic
-                // This part doesn't seem to be used for the lazy-loaded components,
-                // but if you have other dynamic sections, you can wrap them similarly.
                 
                 <section className="mb-5" key={title}>
                     <h2>{title}</h2>
@@ -561,8 +339,8 @@ function HomePage() {
                     </div>
                 </section>
             ))}
-            <footer className="custom-footer">
-                <p className="footer-text">© ZAKRU Technologies Pvt. Ltd.</p>
+            <footer className="custom-footer" style={{ backgroundColor: '#222', color: 'white', padding: '20px 0', textAlign: 'center' }}>
+                <p className="footer-text" style={{ margin: '0 0 10px 0' }}>© ZAKRU Technologies Pvt. Ltd.</p>
                 <div className="social-icons">
                     <a
                         href="https://youtube.com/@public_0cassion?si=nswULJf9ZyvFmk-m"
@@ -570,11 +348,13 @@ function HomePage() {
                         rel="noopener noreferrer"
                         className="social-link"
                         onClick={(e) => trackClick('link-youtube', 'other', window.location.pathname)}
+                        style={{ margin: '0 10px' }}
                     >
                         <img
                             src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"
                             alt="YouTube Channel"
                             className="social-icon"
+                            style={{ width: '32px', height: '32px' }}
                         />
                     </a>
                     <a
@@ -583,11 +363,13 @@ function HomePage() {
                         rel="noopener noreferrer"
                         className="social-link"
                         onClick={(e) => trackClick('link-facebook', 'other', window.location.pathname)}
+                        style={{ margin: '0 10px' }}
                     >
                         <img
                             src="https://cdn-icons-png.flaticon.com/512/733/733547.png"
                             alt="Facebook Profile"
                             className="social-icon"
+                            style={{ width: '32px', height: '32px' }}
                         />
                     </a>
                 </div>

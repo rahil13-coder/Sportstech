@@ -594,7 +594,7 @@ const Admin = ({ onBackClick }) => {
 
   return (
     <div className="home-container" style={{ backgroundImage: 'url("/background.jpg")', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}>
-      <button onClick={onBackClick} style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1, backgroundColor: 'skyblue' }}>Back</button>
+      <button onClick={onBackClick} style={{ position: 'absolute', top: '10px', left: '80px', zIndex: 1, backgroundColor: 'skyblue' }}>Back</button>
 
       {loggedIn ? (
         adminContent

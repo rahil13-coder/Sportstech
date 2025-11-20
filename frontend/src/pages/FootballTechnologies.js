@@ -21,13 +21,15 @@ const COLORS = {
   skeleton: "cyan",
 };
 
-export default function FootballTechnologies() {
+export default function FootballTechnologies({ onBackClick }) {
   const [showTechnologies, setShowTechnologies] = useState(false);
   const [showAnalytica, setShowAnalytica] = useState(false);
   const [useWebcam, setUseWebcam] = useState(false);
   const [showResultScreen, setShowResultScreen] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState(null);
   const [facingMode, setFacingMode] = useState("user");
+  const [isWebcamHovered, setIsWebcamHovered] = useState(false);
+  const [isAnalyticaHovered, setIsAnalyticaHovered] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -40,7 +42,6 @@ export default function FootballTechnologies() {
 
   useEffect(() => {
     trackClick('page-load-football-technologies-page', 'page-load', window.location.pathname); // Track page load
-
     if (!showAnalytica) return;
 
     const loadModels = async () => {
@@ -277,10 +278,29 @@ export default function FootballTechnologies() {
   };
 
   return (
-    <section style={{ padding: "20px" }}>
+    <section style={{ padding: "20px", textAlign: 'center' }}>
+      {onBackClick && (
+        <button
+          onClick={onBackClick}
+          style={{
+            position: "absolute",
+            top: "20px",
+            left: "80px",
+            padding: "10px 20px",
+            backgroundColor: "#ffffffcc",
+            border: "none",
+            borderRadius: "8px",
+            fontWeight: "bold",
+            cursor: "pointer",
+            zIndex: 10000,
+          }}
+        >
+          ← Back
+        </button>
+      )}
       <h2 className= "football"style={{ marginBottom: "12px" }}> FOOTBALL TECHNOLOGIES </h2>
 
-      <button className="btn-view-technologies" onClick={(e) => { setShowTechnologies(true); trackClick('button-view-football-technologies', 'button', window.location.pathname); }} style={{ marginBottom: "10px" }}>
+      <button className="btn-view-technologies" onClick={(e) => { setShowTechnologies(true); trackClick('button-view-football-technologies', 'button', window.location.pathname); }} style={{ marginBottom: "10px", backgroundColor: "#007bff", color: "white" }}>
         View Football Technologies
       </button>
 
@@ -306,7 +326,7 @@ export default function FootballTechnologies() {
             style={{
               position: "absolute",
               top: "20px",
-              left: "20px",
+              left: "80px",
               padding: "10px 20px",
               backgroundColor: "#ffffffcc",
               border: "none",
@@ -323,7 +343,17 @@ export default function FootballTechnologies() {
             <button
               className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"}
               onClick={(e) => { setShowAnalytica(prev => !prev); trackClick('button-football-analytica-toggle', 'button', window.location.pathname); }}
-              style={{ marginBottom: 10 }}
+              onMouseEnter={() => setIsAnalyticaHovered(true)}
+              onMouseLeave={() => setIsAnalyticaHovered(false)}
+              style={{
+                marginBottom: 10,
+                backgroundColor: isAnalyticaHovered ? '#007bff' : 'orange',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '5px',
+                cursor: 'pointer'
+              }}
             >
               {showAnalytica ? "Close " : "Football Analytica"}
             </button>
@@ -344,7 +374,17 @@ export default function FootballTechnologies() {
                   <button
                     className="btn-use-webcam1"
                     onClick={(e) => { handleWebcam(e); trackClick('button-football-analytica-use-webcam', 'button', window.location.pathname); }}
-                    style={{ marginLeft: 10 }}
+                    onMouseEnter={() => setIsWebcamHovered(true)}
+                    onMouseLeave={() => setIsWebcamHovered(false)}
+                    style={{
+                      marginLeft: 10,
+                      backgroundColor: isWebcamHovered ? '#007bff' : 'orange',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 15px',
+                      borderRadius: '5px',
+                      cursor: 'pointer'
+                    }}
                   >
                     Use Webcam
                   </button>

@@ -451,7 +451,6 @@ app.post('/api/us-rental', async (req, res) => {
   }
 });
 
-
 // Health Check
 app.get('/', (req, res) => {
   res.send('✅ Sports Tech API is running...');
@@ -461,5 +460,3 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running at ${HOST_URL} on port ${PORT}`);
 });
-
-

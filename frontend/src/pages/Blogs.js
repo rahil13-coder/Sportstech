@@ -3,8 +3,10 @@ import './Blogs.css'; // Assuming a Blogs.css will be created
 import { trackClick } from '../utils/trackClick'; // Import trackClick
 import ReactQuill from 'react-quill'; // Import ReactQuill
 import 'react-quill/dist/quill.snow.css'; // Import Quill's CSS
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
-const Blogs = ({ onBackClick }) => {
+const Blogs = () => {
+  const navigate = useNavigate(); // Initialize navigate
   const [choice, setChoice] = useState(null); // 'create' or 'view'
   const [loggedIn, setLoggedIn] = useState(false);
   const [userId, setUserId] = useState('');
@@ -201,7 +203,7 @@ const Blogs = ({ onBackClick }) => {
 
   return (
     <div className="blogs-container" style={{ backgroundImage: 'url("/background.jpg")', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', minHeight: '100vh', color: 'white', padding: '20px' }}>
-      <button onClick={(e) => { onBackClick(e); trackClick('button-blogs-back-top', 'button', window.location.pathname); }} style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1, backgroundColor: 'skyblue' }}>Back</button>
+      <button onClick={() => { navigate(-1); trackClick('button-blogs-back-top', 'button', window.location.pathname); }} style={{ position: 'absolute', top: '10px', left: '80px', zIndex: 1, backgroundColor: 'skyblue' }}>Back</button>
 
       
 

@@ -1,0 +1,6 @@
+body, #root, .app-container { /* Apply to body, or root div, or a common app container */
+  background-size: cover; /* Cover the entire area */
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat; /* Do not repeat the image */
+  min-height: 100vh; /* Ensure it covers the full viewport height */
+}

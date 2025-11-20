@@ -76,27 +76,111 @@ const CricketTechnologies = ({ cricketTech }) => {
   };
 
   // === FULL SCREEN RENDERING ===
+  if (activeTab === "Live Stream") {
+    return (
+      <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 1001,
+          backgroundImage: `url('/background.jpg')`,
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          overflowY: 'auto',
+          padding: '20px',
+          color: 'white',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center'
+      }}>
+        <button
+          onClick={() => setActiveTab(null)}
+          style={{
+              position: 'absolute',
+              top: '8px',
+              left: '80px',
+              padding: '4px 8px',
+              fontSize: '20px',
+              backgroundColor: 'rgba(255, 255, 255, 1)',
+              border: 'none',
+              borderRadius: '4px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              zIndex: 1002,
+          }}
+        >
+          ← Back
+        </button>
+        <h2 style={{ textAlign: 'center' }}>Live Stream</h2>
+        <p style={{ textAlign: 'center', fontSize: '18px' }}>This feature is coming soon!</p>
+      </div>
+    );
+  }
+
   if (activeTab === "Cricket News") {
     return (
-      <div className="fullscreen-section">
-        <h3 className="LCN">Latest Cricket News</h3>
-        <button onClick={(e) => { setActiveTab(null); trackClick('button-cricket-news-back', 'button', window.location.pathname); }} className="back-button">⬅️ Back</button>
+      <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 1001, // Higher zIndex to appear above the 4-button menu
+          backgroundImage: `url('/background.jpg')`,
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          overflowY: 'auto',
+          padding: '20px',
+          color: 'white'
+      }}>
+        <button
+          onClick={() => setActiveTab(null)}
+          style={{
+              position: 'absolute',
+              top: '8px',
+              left: '80px',
+              padding: '4px 8px',
+              fontSize: '20px',
+              backgroundColor: 'rgba(255, 255, 255, 1)',
+              border: 'none',
+              borderRadius: '4px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              zIndex: 1002,
+          }}
+        >
+          ← Back
+        </button>
+        <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Latest Cricket News</h2>
         {news.length > 0 ? (
-          news.map((article, index) => (
-            <div key={index} className="news-article">
-              <h4 className="news-title">{article.title}</h4>
-              {article.image_url && (
-                <img src={article.image_url} alt={article.title} className="news-image" width="300" />
-              )}
-              <p className="news-description">{article.description || "No description available."}</p>
-              <a href={article.link} target="_blank" rel="noopener noreferrer" className="news-link">
-                Read more
-              </a>
-              <hr />
-            </div>
-          ))
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            {news.map((article, index) => (
+              <div key={index} style={{
+                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                borderRadius: '10px',
+                padding: '20px',
+                margin: '10px 0',
+                width: '90%',
+                maxWidth: '800px',
+              }}>
+                <h4 style={{ marginTop: 0 }}>{article.title}</h4>
+                {article.image_url && (
+                  <img src={article.image_url} alt={article.title} style={{ maxWidth: '100%', height: 'auto', borderRadius: '5px' }} />
+                )}
+                <p>{article.description || "No description available."}</p>
+                <a href={article.link} target="_blank" rel="noopener noreferrer" style={{ color: '#17a2b8', fontWeight: 'bold' }}>
+                  Read more
+                </a>
+              </div>
+            ))}
+          </div>
         ) : (
-          <p>Loading cricket news...</p>
+          <p style={{ textAlign: 'center', fontSize: '18px' }}>Loading cricket news...</p>
         )}
       </div>
     );
@@ -104,106 +188,179 @@ const CricketTechnologies = ({ cricketTech }) => {
 
   if (activeTab === "Cricket Scores") {
     return (
-      <div className="fullscreen-section">
+      <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 1001,
+          backgroundImage: `url('/background.jpg')`,
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          overflowY: 'auto',
+          padding: '20px',
+          color: 'white'
+      }}>
+        <button
+          onClick={() => selectedScore ? setSelectedScore(null) : setActiveTab(null)}
+          style={{
+              position: 'absolute',
+              top: '8px',
+              left: '80px',
+              padding: '4px 8px',
+              fontSize: '20px',
+              backgroundColor: 'rgba(255, 255, 255, 1)',
+              border: 'none',
+              borderRadius: '4px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              zIndex: 1002,
+          }}
+        >
+          ← Back
+        </button>
+        
         {!selectedScore ? (
-          <>
-            <button className="cricket3-back-button" onClick={(e) => { navigate("/"); trackClick('button-cricket-technologies-back-to-home', 'button', window.location.pathname); }}>
-        ⬅ Back
-      </button>
-            <h2 className="cricket3-title">🏏 Recent Cricket Scores</h2>
+          // List View
+          <div style={{ textAlign: 'center' }}>
+            <h2 style={{ marginBottom: '20px' }}>🏏 Recent Cricket Scores</h2>
             {scores.length > 0 ? (
-              <div className="cricket3-matches">
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 {scores.map((match, index) => (
-                  <div key={index} className="cricket3-card">
-                    <h3 className="cricket3-match-name">{match.title}</h3>
-                    <p className="cricket3-teams">{match.description}</p>
+                  <div key={index} style={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    borderRadius: '10px',
+                    padding: '20px',
+                    margin: '10px 0',
+                    width: '90%',
+                    maxWidth: '800px',
+                  }}>
+                    <h3 style={{ marginTop: 0 }}>{match.title}</h3>
+                    <p>{match.description}</p>
                     <button
-                      className="score-link-button"
-                      onClick={(e) => { setSelectedScore(match); trackClick(`button-view-scorecard-${match.title}`, 'button', window.location.pathname); }}
+                      onClick={() => setSelectedScore(match)}
                       style={{
-                        cursor: "pointer",
-                        color: "#0288d1",
-                        background: "none",
-                        border: "none",
+                        cursor: 'pointer',
+                        color: '#17a2b8',
+                        background: 'none',
+                        border: 'none',
                         padding: 0,
-                        textDecoration: "underline",
-                        marginTop: "0.5rem",
+                        textDecoration: 'underline',
+                        fontSize: '16px',
+                        fontWeight: 'bold'
                       }}
                     >
                       View Full Scorecard
                     </button>
-                    <p className="cricket3-status">
-                      <em>{match.pubDate}</em>
+                    <p style={{ marginTop: '10px', fontStyle: 'italic' }}>
+                      {match.pubDate}
                     </p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="cricket3-loading">Loading cricket scores...</p>
+              <p style={{ fontSize: '18px' }}>Loading cricket scores...</p>
             )}
-          </>
+          </div>
         ) : (
-          <>
-            <button onClick={(e) => { setSelectedScore(null); trackClick('button-scorecard-detail-back', 'button', window.location.pathname); }} className="cricket3-back-button">
-              ⬅ Back
-            </button>
-            <h2 className="cricket3-title">📋 Scorecard Detail</h2>
-            <div className="cricket3-card">
-              <h3 className="cricket3-match-name">{selectedScore.title}</h3>
-              <p className="cricket3-teams">{selectedScore.description}</p>
-              <a
-                href={getHttpsLink(selectedScore.link)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="news-link"
-                style={{ color: "#0288d1", textDecoration: "underline" }}
-              >
-                Open Scorecard in New Tab
-              </a>
-              <p className="cricket3-status">
-                <em>{selectedScore.pubDate}</em>
-              </p>
-            </div>
-          </>
+          // Detail View
+          <div style={{ textAlign: 'center' }}>
+              <h2 style={{ marginBottom: '20px' }}>📋 Scorecard Detail</h2>
+              <div style={{
+                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                  borderRadius: '10px',
+                  padding: '20px',
+                  margin: '10px auto',
+                  width: '90%',
+                  maxWidth: '800px',
+                }}>
+                <h3 style={{ marginTop: 0 }}>{selectedScore.title}</h3>
+                <p>{selectedScore.description}</p>
+                <a
+                  href={getHttpsLink(selectedScore.link)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#17a2b8', fontWeight: 'bold', fontSize: '18px' }}
+                >
+                  Open Scorecard in New Tab
+                </a>
+                <p style={{ marginTop: '10px', fontStyle: 'italic' }}>
+                  {selectedScore.pubDate}
+                </p>
+              </div>
+          </div>
         )}
       </div>
     );
   }
 
   return (
-    <section className="cricket">
-      <h2>CRICKET TECHNOLOGIES</h2>
-      <button className="c1" onClick={(e) => { setShow(!show); trackClick('button-view-cricket-technologies', 'button', window.location.pathname); }}>
-        {show ? "Close" : "View Cricket Technologies"}
-      </button>
+    <>
+      <section className="cricket" style={{ textAlign: 'center' }}>
+        <h2>CRICKET TECHNOLOGIES</h2>
+        <button
+          className="btn btn-primary"
+          onClick={(e) => { setShow(!show); trackClick('button-view-cricket-technologies', 'button', window.location.pathname); }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = 'orange'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = ''}
+        >
+          {show ? "Close" : "View Cricket Technologies"}
+        </button>
+      </section>
 
-      {show && (
-        <div>
-          {cricketTech && cricketTech.length > 0 ? (
-            cricketTech.map((tech) => (
-              <div key={tech._id}>
-                <h5>{tech.name}</h5>
-                <p><strong>Description:</strong> {tech.description}</p>
-                <p><strong>Working Principle:</strong> {tech.workingPrinciple}</p>
-                <pre><code>{tech.codeSnippet}</code></pre>
-              </div>
-            ))
-          ) : (
-            <div className="tech-buttons">
-              {["Cricket News", "Cricket Scores", "Fantasy", "Live Stream"].map((label, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleButtonClick(label)}
-                  className={`tech-button ${activeTab === label ? "active" : ""}`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
+      {show && !activeTab && (
+        <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 1000,
+            backgroundImage: `url('/background.jpg')`,
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            overflowY: 'auto',
+            padding: '20px',
+            textAlign: 'center'
+        }}>
+          <button
+            onClick={() => setShow(false)}
+            style={{
+                position: 'absolute',
+                top: '8px',
+                left: '80px',
+                padding: '4px 8px',
+                fontSize: '20px',
+                backgroundColor: 'rgba(255, 255, 255, 1)',
+                border: '20px',
+                borderRadius: '4px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                zIndex: 1001,
+            }}
+          >
+            ← Back
+          </button>
+
+          <div className="tech-buttons" style={{ marginTop: '100px' }}>
+            <h3 style={{color: 'white'}}>Cricket Services</h3>
+            {["Cricket News", "Cricket Scores", "Fantasy", "Live Stream"].map((label, index) => (
+              <button
+                key={index}
+                onClick={() => handleButtonClick(label)}
+                className={`tech-button ${activeTab === label ? "active" : ""}`}
+                style={{ margin: '10px', padding: '15px 30px', fontSize: '18px' }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
-    </section>
+    </>
   );
 };
 

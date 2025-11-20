@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react'; // Added useEffect
 import './Home.css';
 import { trackClick } from '../utils/trackClick'; // Import trackClick
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
-const Home = ({ onBackClick }) => {
+const Home = () => {
+  const navigate = useNavigate(); // Initialize navigate
   useEffect(() => {
     trackClick('page-load-home-component', 'page-load', window.location.pathname);
   }, []);
@@ -10,7 +12,7 @@ const Home = ({ onBackClick }) => {
 
   return (
     <div className="home-container" style={{ backgroundImage: 'url("/background.jpg")', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}>
-      <button onClick={onBackClick} style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1, backgroundColor: 'skyblue' }}>Back</button>
+      <button onClick={() => navigate(-1)} style={{ position: 'absolute', top: '10px', left: '80px', zIndex: 1, backgroundColor: 'skyblue' }}>Back</button>
 
       {/* Directly render the content that was previously conditional */}
       <>

@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
-const Books = ({ onBackClick, isAdminMode }) => {
+const Books = ({ isAdminMode }) => {
+  const navigate = useNavigate(); // Initialize navigate
   const styles = {
     container: {
       display: 'flex',
@@ -126,7 +128,7 @@ const Books = ({ onBackClick, isAdminMode }) => {
     backButton: {
       position: 'absolute',
       top: '20px',
-      left: '20px',
+      left: '80px',
       padding: '10px 15px',
       backgroundColor: 'rgba(0, 0, 0, 0.6)',
       color: 'white',
@@ -160,13 +162,13 @@ const Books = ({ onBackClick, isAdminMode }) => {
   return (
     <div style={styles.container}>
       <button
-        onClick={onBackClick}
-        style={{ ...styles.backButton, ...(isBackHovered ? styles.backButtonHover : {}) }}
-        onMouseEnter={() => setIsBackHovered(true)}
-        onMouseLeave={() => setIsBackHovered(false)}
-      >
-        ← Back
-      </button>
+  onClick={() => navigate(-1)}
+  style={{ ...styles.backButton, ...(isBackHovered ? styles.backButtonHover : {}) }}
+  onMouseEnter={() => setIsBackHovered(true)}
+  onMouseLeave={() => setIsBackHovered(false)}
+>
+  ← Back
+</button>
       <h1 style={styles.title}>Welcome To Books Infinity</h1>
       <div style={styles.buttonContainer}>
         <button

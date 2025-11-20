@@ -21,7 +21,7 @@ const Games = ({ onBackClick }) => {
         return <BluffGame />;
       default:
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', textAlign: 'center', backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: '20px', borderRadius: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: '20px', borderRadius: '8px' }}>
             <h2 style={{ marginBottom: '30px' }}>Choose a Game to Play!</h2>
             <button onClick={() => setCurrentGame('ticTacToe')} style={{ backgroundColor: 'blue', color: 'white', padding: '15px 30px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '1.2em', margin: '10px' }}>
               Tic Tac Toe
@@ -41,8 +41,8 @@ const Games = ({ onBackClick }) => {
   };
 
   return (
-    <div className="games-container" style={{ backgroundImage: 'url("/background.jpg")', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', minHeight: '100vh', color: 'white', padding: '20px' }}>
-      <button onClick={(e) => { if (currentGame) setCurrentGame(null); else onBackClick(e); }} style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1, backgroundColor: 'skyblue' }}>
+    <div className="games-container" style={{ backgroundImage: 'url("/background.jpg")', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', color: 'white', padding: '20px' }}>
+      <button onClick={(e) => { if (currentGame) setCurrentGame(null); else onBackClick(e); }} style={{ position: 'absolute', top: '10px', left: '80px', zIndex: 1, backgroundColor: 'skyblue' }}>
         {currentGame ? 'Back to Game Selection' : 'Back'}
       </button>
       {renderGame()}
