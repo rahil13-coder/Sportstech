@@ -23,11 +23,13 @@ const CricketTechnologies = ({ cricketTech }) => {
     if (label === "Cricket News") {
       try {
         const response = await fetch(
-          'https://newsdata.io/api/1/latest?apikey=pub_5026468b4e5147d69ed60033119e6062&q=cricket'
+          "https://api.allorigins.win/get?url=" + encodeURIComponent('https://newsdata.io/api/1/latest?apikey=pub_5026468b4e5147d69ed60033119e6062&q=cricket')
         );
-        const data = await response.json();
+        const result = await response.json();
+        const data = JSON.parse(result.contents); // The actual response is a string in 'contents'
         setNews(data.results || []);
-      } catch {
+      } catch (error) {
+        console.error("Error fetching cricket news:", error);
         setNews([{
           title: "News load nahi ho paayi",
           description: "Internet connection check karein ya baad mein try karein.",
@@ -55,7 +57,8 @@ const CricketTechnologies = ({ cricketTech }) => {
         }));
 
         setScores(parsedScores);
-      } catch {
+      } catch (error) {
+        console.error("Error fetching cricket scores:", error);
         setScores([{
           title: "Scores load nahi ho paaye",
           description: "Internet connection check karein ya baad mein try karein.",
@@ -65,9 +68,7 @@ const CricketTechnologies = ({ cricketTech }) => {
       }
     }
 
-    if (label === "Fantasy") {
-      navigate("/fantasy");
-    }
+    
   };
 
   const getHttpsLink = (url) => {
@@ -297,71 +298,73 @@ const CricketTechnologies = ({ cricketTech }) => {
   }
 
   return (
-    <>
-      <section className="cricket" style={{ textAlign: 'center' }}>
-        <h2>CRICKET TECHNOLOGIES</h2>
+  <>
+    <section className="cricket" style={{ textAlign: 'center' }}>
+      <div style={{ display: 'inline-block', backgroundColor: 'black', padding: '20px', borderRadius: '10px' }}>
+        <h2 style={{ color: 'white', margin: 0, marginBottom: '15px' }}>SCORECARD</h2>
         <button
           className="btn btn-primary"
-          onClick={(e) => { setShow(!show); trackClick('button-view-cricket-technologies', 'button', window.location.pathname); }}
+          onClick={(e) => { setShow(!show); trackClick('button-view-scorecard', 'button', window.location.pathname); }}
           onMouseEnter={(e) => e.target.style.backgroundColor = 'orange'}
           onMouseLeave={(e) => e.target.style.backgroundColor = ''}
         >
-          {show ? "Close" : "View Cricket Technologies"}
+          {show ? "Close" : "View Scorecard"}
         </button>
-      </section>
+      </div>
+    </section>
 
-      {show && !activeTab && (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            zIndex: 1000,
-            backgroundImage: `url('/background.jpg')`,
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            overflowY: 'auto',
-            padding: '20px',
-            textAlign: 'center'
-        }}>
-          <button
-            onClick={() => setShow(false)}
-            style={{
-                position: 'absolute',
-                top: '8px',
-                left: '80px',
-                padding: '4px 8px',
-                fontSize: '20px',
-                backgroundColor: 'rgba(255, 255, 255, 1)',
-                border: '20px',
-                borderRadius: '4px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                zIndex: 1001,
-            }}
-          >
-            ← Back
-          </button>
+    {show && !activeTab && (
+      <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 1000,
+          backgroundImage: `url('/background.jpg')`,
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          overflowY: 'auto',
+          padding: '20px',
+          textAlign: 'center'
+      }}>
+        <button
+          onClick={() => setShow(false)}
+          style={{
+              position: 'absolute',
+              top: '8px',
+              left: '80px',
+              padding: '4px 8px',
+              fontSize: '20px',
+              backgroundColor: 'rgba(255, 255, 255, 1)',
+              border: '1px solid black',
+              borderRadius: '4px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              zIndex: 1001,
+          }}
+        >
+          ← Back
+        </button>
 
-          <div className="tech-buttons" style={{ marginTop: '100px' }}>
-            <h3 style={{color: 'white'}}>Cricket Services</h3>
-            {["Cricket News", "Cricket Scores", "Fantasy", "Live Stream"].map((label, index) => (
-              <button
-                key={index}
-                onClick={() => handleButtonClick(label)}
-                className={`tech-button ${activeTab === label ? "active" : ""}`}
-                style={{ margin: '10px', padding: '15px 30px', fontSize: '18px' }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+        <div className="tech-buttons" style={{ marginTop: '100px' }}>
+          <h3 style={{color: 'red'}}>SCORECARD</h3>
+          {["Cricket News", "Cricket Scores", "Live Stream"].map((label, index) => (
+            <button
+              key={index}
+              onClick={() => handleButtonClick(label)}
+              className={`tech-button ${activeTab === label ? "active" : ""}`}
+              style={{ margin: '10px', padding: '15px 30px', fontSize: '18px', color: 'red'}}
+            >
+              {label}
+            </button>
+          ))}
         </div>
-      )}
-    </>
-  );
-};
+      </div>
+    )}
+  </>
+);
+}
 
 export default CricketTechnologies;

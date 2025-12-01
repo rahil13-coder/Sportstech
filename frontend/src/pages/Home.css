@@ -66,3 +66,38 @@
   font-size: 1em;
   line-height: 1.5;
 }
+
+/* New styles provided by the user */
+.footer-box {
+  background-color: rgba(0, 0, 0, 0.85);  /* same dark box style */
+  padding: 25px 40px;
+  border-radius: 12px;
+  text-align: center;
+  width: fit-content;
+  margin: 30px auto;
+  border: 2px solid rgba(255, 255, 255, 0.2); /* optional, like scorecard border */
+}
+
+.footer-text {
+  color: white;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.social-icon {
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.custom-footer {
+  display: flex;
+  justify-content: center;
+  /* Add any other default footer styles if needed, but for now, just centering */
+}

@@ -225,6 +225,7 @@ const Contact = ({ isAdminMode, onBackClick }) => {
                 src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"
                 alt="YouTube Channel"
                 className="social-icon"
+                style={{ width: '32px', height: '32px', margin: '0 10px' }}
               />
             </a>
             <a
@@ -237,6 +238,7 @@ const Contact = ({ isAdminMode, onBackClick }) => {
                 src="https://cdn-icons-png.flaticon.com/512/733/733547.png"
                 alt="Facebook Profile"
                 className="social-icon"
+                style={{ width: '32px', height: '32px', margin: '0 10px' }}
               />
             </a>
           </div>
@@ -290,6 +292,7 @@ const Contact = ({ isAdminMode, onBackClick }) => {
                 src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"
                 alt="YouTube Channel"
                 className="social-icon"
+                style={{ width: '32px', height: '32px', margin: '0 10px' }}
               />
             </a>
             <a
@@ -302,6 +305,7 @@ const Contact = ({ isAdminMode, onBackClick }) => {
                 src="https://cdn-icons-png.flaticon.com/512/733/733547.png"
                 alt="Facebook Profile"
                 className="social-icon"
+                style={{ width: '32px', height: '32px', margin: '0 10px' }}
               />
             </a>
           </div>

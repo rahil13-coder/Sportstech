@@ -3,7 +3,7 @@ import './Home.css';
 import { trackClick } from '../utils/trackClick'; // Import trackClick
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
-const Home = () => {
+const Home = ({ onBackClick }) => { // Accept onBackClick prop
   const navigate = useNavigate(); // Initialize navigate
   useEffect(() => {
     trackClick('page-load-home-component', 'page-load', window.location.pathname);
@@ -12,7 +12,7 @@ const Home = () => {
 
   return (
     <div className="home-container" style={{ backgroundImage: 'url("/background.jpg")', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}>
-      <button onClick={() => navigate(-1)} style={{ position: 'absolute', top: '10px', left: '80px', zIndex: 1, backgroundColor: 'skyblue' }}>Back</button>
+      <button onClick={onBackClick} style={{ position: 'absolute', top: '10px', left: '80px', zIndex: 1, backgroundColor: 'skyblue' }}>Back</button>
 
       {/* Directly render the content that was previously conditional */}
       <>
@@ -96,34 +96,34 @@ const Home = () => {
           </section>
         </main>
         <footer className="custom-footer">
-          <p className="footer-text">© ZAKRU Technologies Pvt. Ltd.</p>
-          <div className="social-icons">
-            <a
-              href="https://youtube.com/@public_0cassion?si=nswULJf9ZyvFmk-m"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="social-link"
-              onClick={() => trackClick('link-youtube-home', 'other', window.location.pathname)}
-            >
-              <img
-                src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"
-                alt="YouTube Channel"
-                className="social-icon"
-              />
-            </a>
-            <a
-              href="https://www.facebook.com/rahil.patial.9?mibextid=ZbWKwL"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="social-link"
-              onClick={() => trackClick('link-facebook-home', 'other', window.location.pathname)}
-            >
-              <img
-                src="https://cdn-icons-png.flaticon.com/512/733/733547.png"
-                alt="Facebook Profile"
-                className="social-icon"
-              />
-            </a>
+          <div className="footer-box">
+            <p className="footer-text">© ZAKRU Technologies Pvt. Ltd.</p>
+            <div className="social-icons">
+              <a
+                href="https://youtube.com/@the_ocassion?si=IcrQIpXZMjpZrem_"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackClick('link-youtube-home', 'other', window.location.pathname)}
+              >
+                <img
+                  src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"
+                  alt="YouTube"
+                  className="social-icon"
+                />
+              </a>
+              <a
+                href="https://www.facebook.com/rahil.patial.9?mibextid=ZbWKwL"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackClick('link-facebook-home', 'other', window.location.pathname)}
+              >
+                <img
+                  src="https://cdn-icons-png.flaticon.com/512/733/733547.png"
+                  alt="Facebook"
+                  className="social-icon"
+                />
+              </a>
+            </div>
           </div>
         </footer>
       </>

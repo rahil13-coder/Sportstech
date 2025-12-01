@@ -9,8 +9,9 @@ const HomePage = lazy(() => import('./pages/HomePage'));
 const AdminPage = lazy(() => import('./pages/Admin')); // New lazy import, changed from AdminPage to Admin
 const Blogs = lazy(() => import('./pages/Blogs'));
 const Books = lazy(() => import('./pages/Books'));
-const ContactPage = lazy(() => import('./pages/contact')); // New lazy import, changed from ContactPage to contact
+const ContactPage = lazy(() => import('./pages/ContactPage')); // New lazy import, changed from ContactPage to contact
 const JobsPage = lazy(() => import('./pages/JobPortal')); // New lazy import, changed from JobsPage to JobPortal
+const Cricket = lazy(() => import('./pages/Cricket'));
 
 const FootballTechnologies = lazy(() => import('./pages/FootballTechnologies')); // Assuming this is the Football page
 const TennisTechnologies = lazy(() => import('./pages/TennisTechnologies')); // Assuming this is the Tennis page
@@ -65,6 +66,7 @@ const AppContent = () => {
           <Route path="/books" element={<Books />} />
           <Route path="/contact" element={<ContactPage onBackClick={handleBackClick} />} />
           <Route path="/jobs" element={<JobsPage onBackClick={handleBackClick} />} />
+          <Route path="/cricket" element={<Cricket onBackClick={handleBackClick} />} />
           
           <Route path="/football" element={<FootballTechnologies onBackClick={handleBackClick} />} />
           <Route path="/tennis" element={<TennisTechnologies onBackClick={handleBackClick} />} />

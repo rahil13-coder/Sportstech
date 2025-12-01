@@ -411,10 +411,10 @@ export default function TennisTechnologies({ onBackClick }) {
 
   return (
     <section style={{ padding: "20px", textAlign: 'center' }}>
-      <h2 className="tennis" style={{ marginBottom: "12px", color: 'white' }}> FOOTBALL TECHNOLOGIES </h2>
+      <h2 className="tennis" style={{ marginBottom: "12px", color: 'white' }}> CRICKET TECHNOLOGIES </h2>
 
       <button className="btn-view-technologies" onClick={() => { setShowTechnologies(true); trackClick('button-view-tennis-technologies', 'button', window.location.pathname); }} style={{ display: 'block', margin: '0 auto 10px auto', backgroundColor: "#007bff", color: "white" }}>
-        View Football Technologies
+        View Cricket Technologies
       </button>
       {onBackClick && (
         <button onClick={onBackClick} style={{ display: 'block', margin: '10px auto 0 auto', padding: "10px 20px", backgroundColor: "#ffffffcc", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", zIndex: 10000 }}>
@@ -424,13 +424,13 @@ export default function TennisTechnologies({ onBackClick }) {
 
       {showTechnologies && (
         <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundImage: "url('/background.jpg')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", zIndex: 9999, overflowY: "auto", padding: 20 }}>
-          <button onClick={() => { setShowTechnologies(false); trackClick('button-football-technologies-back', 'button', window.location.pathname); }} style={{ position: "absolute", top: "20px", left: "20px", padding: "10px 20px", backgroundColor: "#ffffffcc", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", zIndex: 10000 }}>
+          <button onClick={() => { setShowTechnologies(false); trackClick('button-cricket-technologies-back', 'button', window.location.pathname); }} style={{ position: "absolute", top: "20px", left: "20px", padding: "10px 20px", backgroundColor: "#ffffffcc", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", zIndex: 10000 }}>
             ← Back
           </button>
 
           <div>
-            <button className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"} onClick={() => { setShowAnalytica(prev => !prev); trackClick('button-football-analytica-toggle', 'button', window.location.pathname); }} onMouseEnter={() => setIsAnalyticaHovered(true)} onMouseLeave={() => setIsAnalyticaHovered(false)} style={{ marginBottom: 10, backgroundColor: isAnalyticaHovered ? '#007bff' : 'orange', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer' }}>
-              {showAnalytica ? "Close " : "Football Analytica"}
+            <button className={showAnalytica ? "btn-close-analytica" : "btn-open-analytica"} onClick={() => { setShowAnalytica(prev => !prev); trackClick('button-tennis-analytica-toggle', 'button', window.location.pathname); }} onMouseEnter={() => setIsAnalyticaHovered(true)} onMouseLeave={() => setIsAnalyticaHovered(false)} style={{ marginBottom: 10, backgroundColor: isAnalyticaHovered ? '#007bff' : 'orange', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer' }}>
+              {showAnalytica ? "Close " : "Cricket Analytica"}
             </button>
 
             {showAnalytica && (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import axios from 'axios';
 import '../App.css';
+import './Home.css';
 import Menu from './Menu';
 import Home from './Home';
 import Admin from './Admin';
@@ -120,10 +121,13 @@ function HomePage() {
     };
 
     const toggleHome = (e) => {
-        setShowHome(!showHome);
+        setShowHome(true); // Always show Home
         setShowAdmin(false);
         setShowBlogs(false);
-        setShowBooks(false); // Close Books when Home is opened
+        setShowBooks(false);
+        setShowGames(false); // Ensure all others are false
+        setShowContact(false);
+        setShowJobs(false);
         trackClick('button-toggle-home', 'button', window.location.pathname);
     };
 
@@ -197,7 +201,10 @@ function HomePage() {
     return (
         <div className="container homepage-background">
             <Menu toggleHome={toggleHome} toggleAdmin={toggleAdmin} toggleBlogs={toggleBlogs} toggleBooks={toggleBooks} toggleGames={toggleGames} toggleContact={toggleContact} toggleJobs={toggleJobs} /> {/* Pass toggleJobs */}
-            {showHome && <Home onBackClick={(e) => { toggleHome(e); trackClick('button-home-back', 'button', window.location.pathname); }} />}
+            {showHome ? (
+                <Home onBackClick={() => setShowHome(false)} /> 
+            ) : (
+                <>
             {showAdmin && <Admin onBackClick={(e) => { toggleAdmin(e); trackClick('button-admin-back', 'button', window.location.pathname); }} />}
             {showBlogs && <Blogs onBackClick={(e) => { toggleBlogs(e); trackClick('button-blogs-back', 'button', window.location.pathname); }} />}
             {showBooks && (
@@ -220,7 +227,7 @@ function HomePage() {
                 
                 <div className="hero-content-center">
                     <div className="hero-main-content" style={{ textAlign: 'center' }}>
-                        <h1 className="hero-title">Sports Technology Explorer</h1>
+                                                <h1 className="hero-title">Sports Technology Explorer</h1>
                         <h6 className="hero-tagline">USE THE TECHNOLOGY TO IMPROVE SPORTS SKILLS</h6>
                         <h6 className="hero-tagline">Works Excellent on Desktop WEBCAM</h6>
                     </div>
@@ -228,7 +235,7 @@ function HomePage() {
                         
                         <div className="qr-code-item" style={{ textAlign: 'center' }}>
                             <img src="/GP.png" alt="QR Code Right" className="hero-qr-code" style={{ width: '150px', height: 'auto' }} />
-                            <h2 className="hero-subtitle right-qr-text" style={{ color: 'white' }}>PAY for Charity</h2>
+                            <h2 className="hero-subtitle right-qr-text" style={{ color: 'Yellow' }}>PAY for Charity</h2>
                         </div>
                     </div>
                 </div>
@@ -236,7 +243,7 @@ function HomePage() {
             </div>
 
             <section className="hero-title">
-                <h2 style={{ textAlign: 'center', color: 'white' }}>Cricket Informatica</h2>
+               
                 <div style={{ textAlign: 'center' }}>
                     <button
                         className="mb-1"
@@ -339,41 +346,39 @@ function HomePage() {
                     </div>
                 </section>
             ))}
-            <footer className="custom-footer" style={{ backgroundColor: '#222', color: 'white', padding: '20px 0', textAlign: 'center' }}>
-                <p className="footer-text" style={{ margin: '0 0 10px 0' }}>© ZAKRU Technologies Pvt. Ltd.</p>
-                <div className="social-icons">
-                    <a
-                        href="https://youtube.com/@public_0cassion?si=nswULJf9ZyvFmk-m"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="social-link"
-                        onClick={(e) => trackClick('link-youtube', 'other', window.location.pathname)}
-                        style={{ margin: '0 10px' }}
-                    >
-                        <img
-                            src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"
-                            alt="YouTube Channel"
-                            className="social-icon"
-                            style={{ width: '32px', height: '32px' }}
-                        />
-                    </a>
-                    <a
-                        href="https://www.facebook.com/rahil.patial.9?mibextid=ZbWKwL"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="social-link"
-                        onClick={(e) => trackClick('link-facebook', 'other', window.location.pathname)}
-                        style={{ margin: '0 10px' }}
-                    >
-                        <img
-                            src="https://cdn-icons-png.flaticon.com/512/733/733547.png"
-                            alt="Facebook Profile"
-                            className="social-icon"
-                            style={{ width: '32px', height: '32px' }}
-                        />
-                    </a>
+            <footer className="custom-footer"> {/* Removed inline styles from custom-footer */}
+                <div className="footer-box">
+                    <p className="footer-text">© ZAKRU Technologies Pvt. Ltd.</p>
+                    <div className="social-icons">
+                        <a
+                            href="https://youtube.com/@public_0cassion?si=nswULJf9ZyvFmk-m"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => trackClick('link-youtube', 'other', window.location.pathname)}
+                        >
+                            <img
+                                src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"
+                                alt="YouTube"
+                                className="social-icon"
+                            />
+                        </a>
+                        <a
+                            href="https://www.facebook.com/rahil.patial.9?mibextid=ZbWKwL"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => trackClick('link-facebook', 'other', window.location.pathname)}
+                        >
+                            <img
+                                src="https://cdn-icons-png.flaticon.com/512/733/733547.png"
+                                alt="Facebook"
+                                className="social-icon"
+                            />
+                        </a>
+                    </div>
                 </div>
             </footer>
+                </>
+            )}
         </div>
     );
 }
