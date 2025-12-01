@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-//const fetch = require('node-fetch');
+const fetch = require('node-fetch'); // Ensure node-fetch is uncommented or installed if not already
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
@@ -13,6 +13,12 @@ const { spawn } = require('child_process');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const HOST_URL = process.env.HOST_URL || `http://localhost:${PORT}`;
+
+// RapidAPI Key for Google Places Autocomplete (secured via environment variables)
+const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
+const RAPIDAPI_HOST = process.env.RAPIDAPI_HOST || 'google-map-places-new-v2.p.rapidapi.com';
+const JSEARCH_RAPIDAPI_HOST = process.env.JSEARCH_RAPIDAPI_HOST || 'jsearch.p.rapidapi.com';
+const REALTY_RAPIDAPI_HOST = process.env.REALTY_RAPIDAPI_HOST || 'realty-in-us.p.rapidapi.com';
 
 // Configure ffmpeg
 ffmpeg.setFfprobePath(ffprobeInstaller.path);
@@ -334,6 +340,116 @@ app.post('/api/analyze', upload.single('video'), (req, res) => {
   });
 });
 
+// New endpoint for Places Autocomplete
+app.post('/api/places-autocomplete', async (req, res) => {
+  const { input } = req.body;
+
+  if (!input) {
+    return res.status(400).json({ error: 'Input parameter is required' });
+  }
+
+  if (!RAPIDAPI_KEY) {
+    console.error('RAPIDAPI_KEY is not set in environment variables.');
+    return res.status(500).json({ error: 'Server configuration error: API key missing.' });
+  }
+
+  try {
+    const rapidApiResponse = await fetch('https://google-map-places-new-v2.p.rapidapi.com/v1/places:autocomplete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-FieldMask': '*',
+        'x-rapidapi-host': RAPIDAPI_HOST,
+        'x-rapidapi-key': RAPIDAPI_KEY,
+      },
+      body: JSON.stringify({
+        input: input,
+        includeQueryPredictions: true,
+      }),
+    });
+
+    const data = await rapidApiResponse.json();
+    res.status(rapidApiResponse.status).json(data);
+
+  } catch (error) {
+    console.error('Error calling RapidAPI Places Autocomplete:', error);
+    res.status(500).json({ error: 'Failed to fetch location suggestions' });
+  }
+});
+
+// New endpoint for JSearch (Latest Jobs)
+app.post('/api/jobs-search', async (req, res) => {
+  const { query, page, num_pages, country, date_posted } = req.body;
+
+  if (!query) {
+    return res.status(400).json({ error: 'Query parameter is required' });
+  }
+
+  if (!RAPIDAPI_KEY) {
+    console.error('RAPIDAPI_KEY is not set in environment variables.');
+    return res.status(500).json({ error: 'Server configuration error: API key missing.' });
+  }
+
+  try {
+    const url = `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(query)}&page=${page || 1}&num_pages=${num_pages || 5}&country=${country || 'us'}&date_posted=${date_posted || 'all'}`;
+    const options = {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': JSEARCH_RAPIDAPI_HOST,
+        'x-rapidapi-key': RAPIDAPI_KEY,
+      },
+    };
+
+    const rapidApiResponse = await fetch(url, options);
+    const data = await rapidApiResponse.json();
+    res.status(rapidApiResponse.status).json(data);
+
+  } catch (error) {
+    console.error('Error calling RapidAPI JSearch:', error);
+    res.status(500).json({ error: 'Failed to fetch job listings' });
+  }
+});
+
+// New endpoint for Realty-in-US (US Rental)
+app.post('/api/us-rental', async (req, res) => {
+  const { limit, offset, postal_code, status, sort } = req.body;
+
+  if (!postal_code) {
+    return res.status(400).json({ error: 'Postal code is required' });
+  }
+
+  if (!RAPIDAPI_KEY) {
+    console.error('RAPIDAPI_KEY is not set in environment variables.');
+    return res.status(500).json({ error: 'Server configuration error: API key missing.' });
+  }
+
+  try {
+    const url = 'https://realty-in-us.p.rapidapi.com/properties/v3/list';
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-rapidapi-host': REALTY_RAPIDAPI_HOST,
+        'x-rapidapi-key': RAPIDAPI_KEY,
+      },
+      body: JSON.stringify({
+        limit: limit || 200,
+        offset: offset || 0,
+        postal_code: postal_code,
+        status: status || ["for_sale", "ready_to_build"],
+        sort: sort || {"direction":"desc","field":"list_date"}
+      }),
+    };
+
+    const rapidApiResponse = await fetch(url, options);
+    const data = await rapidApiResponse.json();
+    res.status(rapidApiResponse.status).json(data);
+
+  } catch (error) {
+    console.error('Error calling RapidAPI Realty-in-US:', error);
+    res.status(500).json({ error: 'Failed to fetch US rental data' });
+  }
+});
 
 // Health Check
 app.get('/', (req, res) => {
@@ -344,5 +460,3 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running at ${HOST_URL} on port ${PORT}`);
 });
-
-
