@@ -23,6 +23,19 @@
   color: #ffffff; /* White text on hover */
 }
 
+.menu-container button.menu-link {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.menu-container button.menu-link:hover {
+  background-color: #34495e; /* Slightly lighter blue on hover */
+  color: #ffffff; /* White text on hover */
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .menu-container {

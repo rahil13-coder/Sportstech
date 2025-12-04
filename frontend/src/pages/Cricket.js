@@ -424,7 +424,7 @@ export default function TennisTechnologies({ onBackClick }) {
 
       {showTechnologies && (
         <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundImage: "url('/background.jpg')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", zIndex: 9999, overflowY: "auto", padding: 20 }}>
-          <button onClick={() => { setShowTechnologies(false); trackClick('button-cricket-technologies-back', 'button', window.location.pathname); }} style={{ position: "absolute", top: "20px", left: "20px", padding: "10px 20px", backgroundColor: "#ffffffcc", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", zIndex: 10000 }}>
+          <button onClick={() => { setShowTechnologies(false); trackClick('button-tennis-technologies-back', 'button', window.location.pathname); }} style={{ position: "absolute", top: "20px", left: "20px", padding: "10px 20px", backgroundColor: "#ffffffcc", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", zIndex: 10000 }}>
             ← Back
           </button>
 

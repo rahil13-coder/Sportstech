@@ -20,7 +20,9 @@ const GamesPage = lazy(() => import('./pages/Games')); // New lazy import
 const Rental = lazy(() => import('./pages/Rental'));
 const Movies = lazy(() => import('./pages/Movies'));
 const MemeGenerator = lazy(() => import('./pages/MemeGenerator'));
-
+const AuthPage = lazy(() => import('./pages/AuthPage')); // New lazy import for AuthPage
+const DataDrivenAthletePage = lazy(() => import('./pages/DataDrivenAthletePage'));
+const MobileMarket = lazy(() => import('./pages/MobileMarket'));
 
 // ✅ Global error handler
 window.onerror = function (message, source, lineno, colno, error) {
@@ -60,7 +62,8 @@ const AppContent = () => {
         }
       >
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<HomePage />} /> {/* Set HomePage as the default route again */}
+          <Route path="/auth" element={<AuthPage />} /> {/* AuthPage is now /auth */}
           <Route path="/admin" element={<AdminPage onBackClick={handleBackClick} />} />
           <Route path="/blogs" element={<Blogs />} />
           <Route path="/books" element={<Books />} />
@@ -75,6 +78,8 @@ const AppContent = () => {
           <Route path="/rental" element={<Rental />} />
           <Route path="/movies" element={<Movies />} />
           <Route path="/meme-generator" element={<MemeGenerator />} />
+          <Route path="/data-driven-athlete" element={<DataDrivenAthletePage />} />
+          <Route path="/mobile-market" element={<MobileMarket />} />
         </Routes>
       </Suspense>
     </div>

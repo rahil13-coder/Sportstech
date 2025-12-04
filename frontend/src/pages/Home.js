@@ -32,16 +32,31 @@ const Home = ({ onBackClick }) => { // Accept onBackClick prop
 
         <main className="home-main">
           <section className="headline-section">
-            <h2>1. The Data-Driven Athlete</h2>
-            <p>Discover how teams are leveraging big data to optimize player performance, prevent injuries, and gain a competitive edge. From wearable sensors to advanced video analysis, data is the new MVP.</p>
-            <button onClick={() => trackClick('button-data-driven-athlete', 'button', window.location.pathname)} style={{ backgroundColor: 'blue', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'block', margin: '15px auto 0 auto' }}>
-               The Data-Driven Athlete
-            </button>
+            <h2>1. Bowling Machine </h2>
+            <p style={{ backgroundColor: 'rgba(255, 0, 0, 0.7)', padding: '20px', borderRadius: '8px', border: '1px solid #ccc' }}> Discover How Computer Visual Bowling Machine Behave, & How They are helping athletes in sports like cricket and tennis to perfect their technique, improve efficiency,</p>
+            <button
+  onClick={() => {
+    trackClick('button-data-driven-athlete', 'button', window.location.pathname);
+    navigate('/data-driven-athlete');   // 👈 THIS IS WHAT YOU ARE MISSING
+  }}
+  style={{
+    backgroundColor: 'blue',
+    color: 'white',
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    display: 'block',
+    margin: '15px auto 0 auto'
+  }}
+>
+  Bowling Machine
+</button>
           </section>
 
           <section className="headline-section">
             <h2>2. Biomechanics and Performance</h2>
-            <p>Explore the science of movement and how biomechanical analysis is helping athletes in sports like cricket and tennis to perfect their technique, improve efficiency, and reduce the risk of strain.</p>
+            <p style={{ backgroundColor: 'rgba(255, 0, 0, 0.7)', padding: '20px', borderRadius: '8px', border: '1px solid #ccc' }}> Explore the science of movement and how biomechanical analysis is helping athletes in sports like cricket and tennis to perfect their technique, improve efficiency, and reduce the risk of strain.</p>
             <button onClick={() => trackClick('button-biomechanics-performance', 'button', window.location.pathname)} style={{ backgroundColor: 'blue', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'block', margin: '15px auto 0 auto' }}>
                Biomechanics and Performance
             </button>
@@ -49,7 +64,7 @@ const Home = ({ onBackClick }) => { // Accept onBackClick prop
 
           <section className="headline-section">
             <h2>3. The Smart Stadium Experience</h2>
-            <p>Learn how modern stadiums are becoming more connected, offering fans an immersive experience with features like instant replays on their phones, in-seat ordering, and augmented reality overlays.</p>
+            <p style={{ backgroundColor: 'rgba(255, 0, 0, 0.7)', padding: '20px', borderRadius: '8px', border: '1px solid #ccc' }}> Learn how modern stadiums are becoming more connected, offering fans an immersive experience with features like instant replays on their phones, in-seat ordering, and augmented reality overlays.</p>
             <button onClick={() => trackClick('button-smart-stadium-experience', 'button', window.location.pathname)} style={{ backgroundColor: 'blue', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'block', margin: '15px auto 0 auto' }}>
                The Smart Stadium Experience
             </button>
@@ -57,7 +72,7 @@ const Home = ({ onBackClick }) => { // Accept onBackClick prop
 
           <section className="headline-section">
             <h2>4. VAR and Officiating Technology</h2>
-            <p>From VAR in football to Hawk-Eye in tennis and cricket, technology is playing an increasingly important role in ensuring fair play and accurate decision-making by officials.</p>
+            <p style={{ backgroundColor: 'rgba(255, 0, 0, 0.7)', padding: '20px', borderRadius: '8px', border: '1px solid #ccc' }}> From VAR in football to Hawk-Eye in tennis and cricket, technology is playing an increasingly important role in ensuring fair play and accurate decision-making by officials.</p>
             <button onClick={() => trackClick('button-var-officiating-technology', 'button', window.location.pathname)} style={{ backgroundColor: 'blue', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'block', margin: '15px auto 0 auto' }}>
                VAR and Officiating Technology
             </button>
@@ -65,7 +80,7 @@ const Home = ({ onBackClick }) => { // Accept onBackClick prop
 
           <section className="headline-section">
             <h2>5. Broadcasting and Fan Engagement</h2>
-            <p>See how innovations in broadcasting, such as 4K streaming, virtual reality, and interactive stats, are bringing fans closer to the action than ever before, whether they're watching football or basketball.</p>
+            <p style={{ backgroundColor: 'rgba(255, 0, 0, 0.7)', padding: '20px', borderRadius: '8px', border: '1px solid #ccc' }}> See how innovations in broadcasting, such as 4K streaming, virtual reality, and interactive stats, are bringing fans closer to the action than ever before, whether they're watching football or basketball.</p>
             <button onClick={() => trackClick('button-broadcasting-fan-engagement', 'button', window.location.pathname)} style={{ backgroundColor: 'blue', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'block', margin: '15px auto 0 auto' }}>
                Broadcasting and Fan Engagement
             </button>
@@ -73,7 +88,7 @@ const Home = ({ onBackClick }) => { // Accept onBackClick prop
 
           <section className="headline-section">
             <h2>6. The Future of Sports Equipment</h2>
-            <p>From smart basketballs that track your shot arc to cricket bats with embedded sensors, we look at the next generation of sports equipment and how it will change the game.</p>
+            <p style={{ backgroundColor: 'rgba(255, 0, 0, 0.7)', padding: '20px', borderRadius: '8px', border: '1px solid #ccc' }}> From smart basketballs that track your shot arc to cricket bats with embedded sensors, we look at the next generation of sports equipment and how it will change the game.</p>
             <button onClick={() => trackClick('button-future-sports-equipment', 'button', window.location.pathname)} style={{ backgroundColor: 'blue', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'block', margin: '15px auto 0 auto' }}>
                The Future of Sports Equipment
             </button>
@@ -81,7 +96,7 @@ const Home = ({ onBackClick }) => { // Accept onBackClick prop
 
           <section className="headline-section">
             <h2>7. E-Sports and Virtual Training</h2>
-            <p>The line between virtual and reality is blurring. We explore the rise of e-sports and how professional athletes are using virtual reality to supplement their training and recovery.</p>
+            <p style={{ backgroundColor: 'rgba(255, 0, 0, 0.7)', padding: '20px', borderRadius: '8px', border: '1px solid #ccc' }}> The line between virtual and reality is blurring. We explore the rise of e-sports and how professional athletes are using virtual reality to supplement their training and recovery.</p>
             <button onClick={() => trackClick('button-esports-virtual-training', 'button', window.location.pathname)} style={{ backgroundColor: 'blue', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'block', margin: '15px auto 0 auto' }}>
                E-Sports and Virtual Training
             </button>
@@ -89,7 +104,7 @@ const Home = ({ onBackClick }) => { // Accept onBackClick prop
 
           <section className="headline-section">
             <h2>8. The Globalization of Sports Fandom</h2>
-            <p>Technology has broken down geographical barriers, allowing fans to follow their favorite teams and players from anywhere in the world. We look at the impact of social media and streaming on global sports culture.</p>
+            <p style={{ backgroundColor: 'rgba(255, 0, 0, 0.7)', padding: '20px', borderRadius: '8px', border: '1px solid #ccc' }}> Technology has broken down geographical barriers, allowing fans to follow their favorite teams and players from anywhere in the world. We look at the impact of social media and streaming on global sports culture.</p>
             <button onClick={() => trackClick('button-globalization-sports-fandom', 'button', window.location.pathname)} style={{ backgroundColor: 'blue', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'block', margin: '15px auto 0 auto' }}>
                The Globalization of Sports Fandom
             </button>

@@ -14,7 +14,8 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <!-- ✅ TensorFlow.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.min.js" defer></script>
 
     <!-- ✅ Pose Detection + MoveNet -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection" defer></script>
@@ -34,6 +35,7 @@
     <script src="https://cdn.jsdelivr.net/npm/kalmanjs@1.3.0/kalman.min.js" defer></script>
 
     <!-- ⭐ YOLOv8 Web -->
+    <script src="https://cdn.jsdelivr.net/npm/yolo-tfjs-vision@latest/dist/yolo.umd.js" defer></script>
    
 
     <!-- ⭐ MoveNet 3D (included in pose-detection) -->
@@ -45,8 +47,8 @@
     <!-- ⭐ SimpleHeat for heatmaps -->
     <script src="https://cdn.jsdelivr.net/npm/simpleheat@0.4.0/simpleheat.js" defer></script>
 
-        <!-- ⭐ YOLO-TS for YOLOv8 (TensorFlow.js based) - This library provides the global 'YOLO' object. -->
-    <script src="https://cdn.jsdelivr.net/npm/yolo-ts@latest/dist/yolo.umd.js"></script>
+        
+
 
 
     <!-- ✅ Optional: TF Speech Commands -->

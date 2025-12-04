@@ -200,7 +200,7 @@ function HomePage() {
 
     return (
         <div className="container homepage-background">
-            <Menu toggleHome={toggleHome} toggleAdmin={toggleAdmin} toggleBlogs={toggleBlogs} toggleBooks={toggleBooks} toggleGames={toggleGames} toggleContact={toggleContact} toggleJobs={toggleJobs} /> {/* Pass toggleJobs */}
+                        <Menu toggleHome={toggleHome} />    
             {showHome ? (
                 <Home onBackClick={() => setShowHome(false)} /> 
             ) : (
