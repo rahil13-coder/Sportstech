@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const fetch = require('node-fetch'); // Ensure node-fetch is uncommented or installed if not already
+const fetch = require('node-fetch');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
@@ -27,29 +27,27 @@ ffmpeg.setFfprobePath(ffprobeInstaller.path);
 const allowedOrigins = [
   'http://localhost:3000',
   'https://sportstech-frontend.onrender.com',
-  'https://occasion.ltd'
+  'https://occasion.ltd',
+  'http://localhost:5173'
 ];
 
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || process.env.NODE_ENV === 'development' || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Not allowed by CORS: ${origin}`));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+};
+app.use(cors(corsOptions));
+
+// Log all incoming headers for debugging
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader(
-      'Access-Control-Allow-Headers',
-      'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-    );
-    res.setHeader(
-      'Access-Control-Allow-Methods',
-      'GET, POST, PUT, DELETE, OPTIONS'
-    );
-  }
-
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200); // Respond quickly to preflight
-  }
-
+  console.log('Incoming Request Headers:', req.headers);
   next();
 });
 
@@ -91,10 +89,11 @@ const upload = multer({
 });
 
 // Routes
-
+// Auth - Removed as per user's request for no login/registration
+// app.use('/api/auth', require('./routes/auth'));
+// Innings route removed as per user's request
 // Technologies
 app.use('/api/technologies', require('./routes/technologies'));
-
 // Traffic Analytics
 app.use('/api/traffic', require('./routes/traffic'));
 
@@ -256,7 +255,7 @@ app.post('/api/analyze', upload.single('video'), (req, res) => {
   let result = '';
   python.stdout.on('data', (data) => {
     result += data.toString();
-    console.log("Python output:", data.toString());  // Debug log
+    console.log("Python output:", data.toString());
   });
 
   python.stderr.on('data', (data) => {
@@ -281,7 +280,6 @@ app.post('/api/analyze', upload.single('video'), (req, res) => {
 
     // If Python failed or output is invalid, send fallback dummy data
     if (errorInPython) {
-      // Dummy data that matches SnickoMeter.js expectations
       return res.json({
         summary: {
           totalFramesAnalyzed: 8,
@@ -306,7 +304,6 @@ app.post('/api/analyze', upload.single('video'), (req, res) => {
     }
 
     // If Python succeeded, ensure all fields are present
-    // If not, fill with fallback values
     const {
       summary = {
         totalFramesAnalyzed: 8,
@@ -410,7 +407,7 @@ app.post('/api/jobs-search', async (req, res) => {
   }
 });
 
-// New endpoint for Realty-in-US (US Rental)
+// New endpoint for Realty-in-US (US Rental) - FIXED
 app.post('/api/us-rental', async (req, res) => {
   const { limit, offset, postal_code, status, sort } = req.body;
 
@@ -438,7 +435,7 @@ app.post('/api/us-rental', async (req, res) => {
         postal_code: postal_code,
         status: status || ["for_sale", "ready_to_build"],
         sort: sort || {"direction":"desc","field":"list_date"}
-      }),
+      })
     };
 
     const rapidApiResponse = await fetch(url, options);
@@ -454,6 +451,12 @@ app.post('/api/us-rental', async (req, res) => {
 // Health Check
 app.get('/', (req, res) => {
   res.send('✅ Sports Tech API is running...');
+});
+
+// Error-handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unexpected error:', err);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
 // Start Server
